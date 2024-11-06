@@ -1,0 +1,45 @@
+{
+	"name": "cosaf",
+	"version": "1.0.0",
+	"description": "Color Scheme Adjustment by Fuzzy Constraint Satisfaction",
+	"license": "MIT",
+	"author": "Takuto Yanagida",
+	"type": "module",
+	"homepage": "https://github.com/takty/cosaf#readme",
+	"keywords": [
+		"js",
+		"css",
+		"html",
+		"style"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/takty/cosaf.git"
+	},
+	"bugs": {
+		"url": "https://github.com/takty/cosaf/issues"
+	},
+	"browserslist": [
+		"> 1%",
+		"last 2 versions",
+		"not dead"
+	],
+	"scripts": {
+		"build": "node ./build.js",
+		"docs": "vite build",
+		"dev": "vite src/_docs --base ./",
+		"debug": "tsc --noEmit -w"
+	},
+	"packageManager": "yarn@1.22.22",
+	"dependencies": {
+		"esbuild": "^0.24.0",
+		"glob": "^11.0.0",
+		"iroay": "github:takty/iroay",
+		"klales": "github:takty/klales",
+		"sass": "^1.80.4",
+		"stlics": "github:takty/stlics",
+		"typescript": "^5.6.3",
+		"vite": "^5.4.10",
+		"voronoi": "github:takty/voronoi"
+	}
+}
