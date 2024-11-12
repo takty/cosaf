@@ -440,8 +440,8 @@ export class Scheme {
 		let sum: number = 0;
 
 		for (let i: number = 0; i < org.#vals.length; ++i) {
-			const o: Triplet = org.getColor(i).asPCCS();
-			const m: Triplet = mod.getColor(i).asPCCS();
+			const o: Triplet = org.getColor(i).asPccs();
+			const m: Triplet = mod.getColor(i).asPccs();
 			const asH: number = Math.abs(m[0] - o[0]);
 			const dH: number = Math.min(asH, 24 - asH);
 			sum += dH;
@@ -460,8 +460,8 @@ export class Scheme {
 		let sum: number = 0;
 
 		for (let i: number = 0; i < org.#vals.length; ++i) {
-			const o: Triplet = org.getColor(i).asPCCS();
-			const m: Triplet = mod.getColor(i).asPCCS();
+			const o: Triplet = org.getColor(i).asPccs();
+			const m: Triplet = mod.getColor(i).asPccs();
 			sum += Math.sqrt((m[1] - o[1]) * (m[1] - o[1]) + (m[2] - o[2]) * (m[2] - o[2]));
 		}
 		return sum / org.size();
