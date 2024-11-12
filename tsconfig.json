@@ -22,10 +22,6 @@
 
 		"sourceMap"     : true,
 		"removeComments": true,
-
-		"paths": {
-			"@/*": ["./node_modules/*"]
-		},
 	},
 	"files": [
 		"cosaf.ts"

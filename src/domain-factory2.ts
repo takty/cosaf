@@ -10,7 +10,7 @@
  * @version 2024-11-12
  */
 
-import { Voronoi } from '@/voronoi/voronoi';
+import { Voronoi } from 'voronoi/voronoi';
 import { Scheme } from './scheme';
 import { Value } from './value';
 import { Parameters } from './parameters';

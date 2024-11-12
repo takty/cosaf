@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+import tsconfigPaths from 'vite-tsconfig-paths'
 
 export default defineConfig({
 	root : 'src/_docs',
@@ -7,5 +8,5 @@ export default defineConfig({
 		outDir     : '../../docs',
 		emptyOutDir: true,
 	},
-	plugins: [],
+	plugins: [tsconfigPaths()],
 });

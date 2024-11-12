@@ -6,7 +6,7 @@
  */
 
 import { Color } from 'iroay/iroay';
-import { Voronoi } from '@/voronoi/voronoi';
+import { Voronoi } from 'voronoi/voronoi';
 
 import { Value } from './value';
 import { Vision } from "./vision";
@@ -69,7 +69,7 @@ export class Scheme {
 	 * @param fixed - Array indicating if each color is fixed; defaults to all false.
 	 * @param quality - A quality metric for the scheme.
 	 */
-	constructor(colorInts: number[], adjacencies: [number, number][] | null, fixed: boolean[] | null = null, quality: number = 1) {
+	constructor(colorInts: number[], adjacencies: [number, number][] | null = null, fixed: boolean[] | null = null, quality: number = 1) {
 		if (adjacencies === null) {
 			adjacencies = Scheme.createAllAdjacencyList(colorInts.length);
 		}

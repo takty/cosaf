@@ -41,5 +41,8 @@
 		"typescript": "^5.6.3",
 		"vite": "^5.4.11",
 		"voronoi": "github:takty/voronoi"
+	},
+	"devDependencies": {
+		"vite-tsconfig-paths": "^5.1.2"
 	}
 }
