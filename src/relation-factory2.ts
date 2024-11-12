@@ -5,7 +5,7 @@
  * Conditions are checked for various vision types and perceptual constraints.
  *
  * @author Takuto Yanagida
- * @version 2024-11-06
+ * @version 2024-11-12
  */
 
 import { FuzzyRelation, Relation } from 'stlics/stlics';
@@ -67,14 +67,14 @@ export class RelationFactory2 implements RelationFactory {
 	/**
 	 * Creates a new Relation instance between two colors.
 	 *
-	 * @param idx0 - Index of the first color.
-	 * @param idx1 - Index of the second color.
+	 * @param _idx0 - Index of the first color.
+	 * @param _idx1 - Index of the second color.
 	 * @param cans0 - Candidates instance for the first color.
 	 * @param cans1 - Candidates instance for the second color.
 	 * @param noPreservation - Specifies which index should skip preservation constraints; defaults to -1.
 	 * @returns A new Relation instance based on color separation and preservation constraints.
 	 */
-	newInstance(idx0: number, idx1: number, cans0: Candidates, cans1: Candidates, noPreservation: number = -1): Relation {
+	newInstance(_idx0: number, _idx1: number, cans0: Candidates, cans1: Candidates, noPreservation: number = -1): Relation {
 		if (noPreservation !== 0 && noPreservation !== 1) {
 			this.#updateRatioToTrichromacy(cans0, cans1);
 		}
@@ -312,7 +312,7 @@ class ColorRelation implements FuzzyRelation {
 		const p0: number = (this.#nop === 0) ? 1 : this.#sig(this.#that.preScale(this.#orig0, cv0));
 		const p1: number = (this.#nop === 1) ? 1 : this.#sig(this.#that.preScale(this.#orig1, cv1));
 
-		const ave: number = ((p0 + p1) / 2 + s) / 2;
+		// const ave: number = ((p0 + p1) / 2 + s) / 2;
 		const min: number = Math.min(s, p0, p1);
 		return min;  // AVE or MIN
 	}

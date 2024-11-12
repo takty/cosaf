@@ -2,11 +2,11 @@
  * A class representing color schemes and related information.
  *
  * @author Takuto Yanagida
- * @version 2024-11-02
+ * @version 2024-11-12
  */
 
 import { Color } from 'iroay/iroay';
-import { Voronoi } from 'voronoi/voronoi';
+import { Voronoi } from '@/voronoi/voronoi';
 
 import { Value } from './value';
 import { Vision } from "./vision";
@@ -47,19 +47,19 @@ export class Scheme {
 		return ret;
 	}
 
-	#ads    : [number, number][];   // Adjacency list
-	#vals   : Value[] = [];         // List of color values
-	#fixed  : boolean[];            // Fixed flag for each color
-	#combs  : Combination[];        // List of color combinations
-	#quality: number;               // Quality metric for the scheme
+	#ads    : [number, number][];  // Adjacency list
+	#vals   : Value[] = [];        // List of color values
+	#fixed  : boolean[];           // Fixed flag for each color
+	#combs  : Combination[];       // List of color combinations
+	#quality: number;              // Quality metric for the scheme
 
-	#bnSize : number;               // Size of the bottleneck color
-	#bnIndex: number;               // Index of the bottleneck color
+	#bnSize! : number;  // Size of the bottleneck color
+	#bnIndex!: number;  // Index of the bottleneck color
 
-	#lowDiffT: Combination;         // Lowest difference for trichromatic vision
-	#lowDiffP: Combination;         // Lowest difference for protanopia
-	#lowDiffD: Combination;         // Lowest difference for deuteranopia
-	#lowDiffM: Combination;         // Lowest difference for monochromatic vision
+	#lowDiffT!: Combination;  // Lowest difference for trichromatic vision
+	#lowDiffP!: Combination;  // Lowest difference for protanopia
+	#lowDiffD!: Combination;  // Lowest difference for deuteranopia
+	#lowDiffM!: Combination;  // Lowest difference for monochromatic vision
 
 	/**
 	 * Initializes the Scheme with color values, adjacencies, fixed flags, and quality.

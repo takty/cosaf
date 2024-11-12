@@ -3,14 +3,14 @@
  * Provides methods to access and modify the original value and check if it has been assigned.
  *
  * @author Takuto Yanagida
- * @version 2024-11-01
+ * @version 2024-11-12
  */
 
 import { Value } from './value';
 
 export class Candidates {
 
-	#orig: Value;
+	#orig: Value | null = null;
 	#vs  : Value[] = [];
 
 	/**

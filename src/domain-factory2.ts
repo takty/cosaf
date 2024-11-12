@@ -7,10 +7,10 @@
  * 4) Colors within double the tolerance or maximum standard limits for hue and tone in PCCS.
  *
  * @author Takuto Yanagida
- * @version 2024-11-06
+ * @version 2024-11-12
  */
 
-import { Voronoi } from 'voronoi/voronoi';
+import { Voronoi } from '@/voronoi/voronoi';
 import { Scheme } from './scheme';
 import { Value } from './value';
 import { Parameters } from './parameters';

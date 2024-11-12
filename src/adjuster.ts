@@ -3,7 +3,7 @@
  * Provides methods to adjust color schemes based on a variety of parameters and constraints.
  *
  * @author Takuto Yanagida
- * @version 2024-11-01
+ * @version 2024-11-12
  */
 
 import { Problem, Domain, Solver, AssignmentList, FuzzyForwardChecking, SRS3, FuzzyBreakout } from 'stlics/stlics';
@@ -25,9 +25,9 @@ export class Adjuster {
 	#param: Parameters = new Parameters();
 	#als  : ((s: Scheme) => boolean)[] = [];
 
-	#org : Scheme;
-	#cans: Candidates[];
-	#mod : Scheme;
+	#org! : Scheme;
+	#cans!: Candidates[];
+	#mod! : Scheme;
 
 	/**
 	 * Initializes an instance of `Adjuster` with optional parameters.
