@@ -2,7 +2,7 @@
  * A class representing color schemes and related information.
  *
  * @author Takuto Yanagida
- * @version 2024-11-12
+ * @version 2024-11-19
  */
 
 import { Color } from 'iroay/iroay';
@@ -137,7 +137,7 @@ export class Scheme {
 
 		const ret: number[] = [];
 		for (let i: number = 0; i < this.#vals.length; ++i) {
-			ret.push(vd.calcGrids(i, 5).length);
+			ret.push(vd.countGrids(i, 5));
 		}
 		return ret;
 	}
@@ -474,7 +474,7 @@ export class Scheme {
 	 */
 	toString(): string {
 		const tn: string[] = ['T', 'P', 'D', 'M'];
-		const vs: Vision[] = Object.entries(Vision).map(([_, v]) => v) as Vision[];
+		const vs: Vision[] = Object.keys(Vision).map(x => parseInt(x)).filter(x => !isNaN(x)) as Vision[];
 		const lc: Combination = this.getLowestDifferenceCombination();
 		let sb: string = '';
 

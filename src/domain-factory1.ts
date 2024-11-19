@@ -3,7 +3,7 @@
  * This factory produces candidates based on various color constraints.
  *
  * @author Takuto Yanagida
- * @version 2024-11-12
+ * @version 2024-11-19
  */
 
 import { Voronoi } from 'voronoi/voronoi';
@@ -60,7 +60,7 @@ export class DomainFactory1 implements DomainFactory {
 				const cd: Candidates = new Candidates();
 
 				if (!this.#scheme.isFixed(i)) {
-					const grid: Triplet[] = vp.calcGrids(i, this.#res);
+					const grid: Triplet[] = vp.getGrids(i, this.#res);
 
 					for (const c of grid) {
 						const cv: Value | null = Value.newInstance(c);
@@ -94,7 +94,7 @@ export class DomainFactory1 implements DomainFactory {
 				const full: Candidates = new Candidates();
 
 				if (!this.#scheme.isFixed(i)) {
-					const grid: Triplet[] = vp.calcGrids(i, this.#res);
+					const grid: Triplet[] = vp.getGrids(i, this.#res);
 
 					for (const c of grid) {
 						const cv: Value | null = Value.newInstance(c);

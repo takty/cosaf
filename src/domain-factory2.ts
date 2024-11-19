@@ -7,7 +7,7 @@
  * 4) Colors within double the tolerance or maximum standard limits for hue and tone in PCCS.
  *
  * @author Takuto Yanagida
- * @version 2024-11-12
+ * @version 2024-11-19
  */
 
 import { Voronoi } from 'voronoi/voronoi';
@@ -66,7 +66,7 @@ export class DomainFactory2 implements DomainFactory {
 				const cd: Candidates = new Candidates();
 
 				if (!this.#scheme.isFixed(i)) {
-					const grid   : Triplet[] = vp.calcGrids(i, this.#res);
+					const grid   : Triplet[] = vp.getGrids(i, this.#res);
 					const maxDiff: number = this.#getMaxDiff(at, i);
 
 					for (const c of grid) {
@@ -99,7 +99,7 @@ export class DomainFactory2 implements DomainFactory {
 					continue;
 				}
 				const cd  : Candidates = new Candidates();
-				const grid: Triplet[] = vp.calcGrids(i, this.#res);
+				const grid: Triplet[] = vp.getGrids(i, this.#res);
 
 				if (!this.#scheme.isFixed(i)) {
 					const maxDiff: number = this.#getMaxDiff(at, i);
@@ -174,7 +174,7 @@ export class DomainFactory2 implements DomainFactory {
 	 */
 	#createFullDomain(idx: number, vp: Voronoi): Candidates {
 		const full = new Candidates();
-		const grid: Triplet[] = vp.calcGrids(idx, this.#res);
+		const grid: Triplet[] = vp.getGrids(idx, this.#res);
 
 		for (const g of grid) {
 			const cv: Value | null = Value.newInstance(g);
