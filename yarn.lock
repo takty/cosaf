@@ -3,9 +3,9 @@
 
 
 "@bufbuild/protobuf@^2.0.0":
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/@bufbuild/protobuf/-/protobuf-2.2.2.tgz#1a6d89603fb215dc4d4178052d05b30b83c75402"
-  integrity sha512-UNtPCbrwrenpmrXuRwn9jYpPoweNXj8X5sMvYgsqYyaH8jQ6LfUJSk3dJLnBK+6sfYPrF4iAIo5sd5HQ+tg75A==
+  version "2.2.3"
+  resolved "https://registry.yarnpkg.com/@bufbuild/protobuf/-/protobuf-2.2.3.tgz#9cd136f6b687e63e9b517b3a54211ece942897ee"
+  integrity sha512-tFQoXHJdkEOSwj5tRIZSPNUuXK3RaR7T1nUrPgbYX1pUbvqqaaZAsfo+NXBPsz5rZMSKVFrgK1WL8Q/MSLvprg==
 
 "@esbuild/aix-ppc64@0.21.5":
   version "0.21.5"
@@ -921,7 +921,7 @@ sass-embedded-win32-x64@1.82.0:
   resolved "https://registry.yarnpkg.com/sass-embedded-win32-x64/-/sass-embedded-win32-x64-1.82.0.tgz#b95082047a18346452ee19a2dd92c2d6abab466c"
   integrity sha512-cEgfOQG5womOzzk16ReTv2dxPq5BG16LgLUold/LH9IZH86u4E/MN7Fspf4RWeEJ2EcLdew9QYSC2YWs1l98dQ==
 
-sass-embedded@^1.80.4:
+sass-embedded@^1.82.0:
   version "1.82.0"
   resolved "https://registry.yarnpkg.com/sass-embedded/-/sass-embedded-1.82.0.tgz#2fe1f592840458d08c0b6d4893f8af6cdad7b379"
   integrity sha512-v13sRVVZtWAQLpAGTz5D8hy+oyNKRHao5tKVc/P6AMqSP+jDM8X6GkEpL0jfbu3MaN2/hAQsd4Qx14GG1u0prQ==
@@ -991,13 +991,13 @@ signal-exit@^4.0.1:
 
 "stlics@github:takty/stlics":
   version "1.0.0"
-  resolved "https://codeload.github.com/takty/stlics/tar.gz/b2ef38218fcb2a5d23e0cab90b2bdd963e19cde7"
+  resolved "https://codeload.github.com/takty/stlics/tar.gz/f0d4ebc7ea78c68e8adc8d386c32bc4a26a92ccc"
   dependencies:
     esbuild "^0.24.0"
     klales "github:takty/klales"
-    sass-embedded "^1.80.4"
-    typescript "^5.6.3"
-    vite "^5.4.10"
+    sass-embedded "^1.82.0"
+    typescript "^5.7.2"
+    vite "^6.0.3"
 
 "string-width-cjs@npm:string-width@^4.2.0":
   version "4.2.3"
@@ -1102,7 +1102,7 @@ vite-tsconfig-paths@^5.1.4:
     globrex "^0.1.2"
     tsconfck "^3.0.3"
 
-vite@^5.4.10, vite@^5.4.11:
+vite@^5.4.11:
   version "5.4.11"
   resolved "https://registry.yarnpkg.com/vite/-/vite-5.4.11.tgz#3b415cd4aed781a356c1de5a9ebafb837715f6e5"
   integrity sha512-c7jFQRklXua0mTzneGW9QVyxFjUgwcihC4bXEtujIo2ouWCe1Ajt/amn2PCxYnhYfd5k09JX3SB7OYWFKYqj8Q==
