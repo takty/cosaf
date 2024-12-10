@@ -3,7 +3,7 @@
  * Provides methods to adjust color schemes based on a variety of parameters and constraints.
  *
  * @author Takuto Yanagida
- * @version 2024-11-12
+ * @version 2024-12-10
  */
 
 import { Problem, Domain, Solver, AssignmentList, FuzzyForwardChecking, SRS3, FuzzyBreakout } from 'stlics/stlics';
@@ -224,10 +224,8 @@ export class Adjuster {
 		s.setTimeLimit(this.#param.getTimeLimit());
 		s.setTargetRate(this.#param.getTargetDesirability());
 
-		s.addListener({
-			foundSolution: (solution: AssignmentList, worstDegree: number): boolean => {
-				return this.#notifyResult(solution, worstDegree);
-			}
+		s.addListener((solution: AssignmentList, worstDegree: number): boolean => {
+			return this.#notifyResult(solution, worstDegree);
 		});
 		return s;
 	}

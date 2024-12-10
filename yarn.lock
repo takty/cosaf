@@ -991,7 +991,7 @@ signal-exit@^4.0.1:
 
 "stlics@github:takty/stlics":
   version "1.0.0"
-  resolved "https://codeload.github.com/takty/stlics/tar.gz/f0d4ebc7ea78c68e8adc8d386c32bc4a26a92ccc"
+  resolved "https://codeload.github.com/takty/stlics/tar.gz/abef5813a1d2ea3fe7eea92c8971490156482d52"
   dependencies:
     esbuild "^0.24.0"
     klales "github:takty/klales"
