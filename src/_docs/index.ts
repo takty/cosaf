@@ -2,7 +2,7 @@
  * Script for Sample
  *
  * @author Takuto Yanagida
- * @version 2024-11-12
+ * @version 2024-12-10
  */
 
 import 'klales/klales.min.css';
@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', (): void => {
 	p.setRatioModeEnabled(false);
 	p.setTargetDesirability(0.8);
 	p.setSolver(SolverType.FC);
+	// p.setSolver(SolverType.FUZZY_BREAKOUT);
+	// p.setSolver(SolverType.SRS3);
 	const s = new Scheme(cs);
 	const a = new Adjuster(p);
 	const mod: Scheme | null = a.adjust(s);
