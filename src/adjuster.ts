@@ -3,7 +3,7 @@
  * Provides methods to adjust color schemes based on a variety of parameters and constraints.
  *
  * @author Takuto Yanagida
- * @version 2024-12-10
+ * @version 2024-12-12
  */
 
 import { Problem, Domain, Solver, AssignmentList, FuzzyForwardChecking, SRS3, FuzzyBreakout } from 'stlics/stlics';
@@ -23,7 +23,7 @@ export class Adjuster {
 	static DEBUG: boolean = true;
 
 	#param: Parameters = new Parameters();
-	#als  : ((s: Scheme) => boolean)[] = [];
+	#als  : ((s: Scheme, degree: number) => boolean)[] = [];
 
 	#org! : Scheme;
 	#cans!: Candidates[];
@@ -63,7 +63,7 @@ export class Adjuster {
 	 *
 	 * @param al - The `AdjusterListener` instance to add.
 	 */
-	addListener(al: ((s: Scheme) => boolean)): void {
+	addListener(al: ((s: Scheme, degree: number) => boolean)): void {
 		this.#als.push(al);
 	}
 
@@ -72,7 +72,7 @@ export class Adjuster {
 	 *
 	 * @param al - The `AdjusterListener` instance to remove.
 	 */
-	removeListener(al: ((s: Scheme) => boolean)): void {
+	removeListener(al: ((s: Scheme, degree: number) => boolean)): void {
 		const i: number = this.#als.indexOf(al);
 		if (-1 !== i) {
 			this.#als.splice(i, 1);
@@ -250,7 +250,7 @@ export class Adjuster {
 		let finish: boolean = (worstDegree > 0.999);  // Automatic termination
 
 		for (const al of this.#als) {
-			if (al(this.#mod)) {
+			if (al(this.#mod, worstDegree)) {
 				finish = true;
 			}
 		}

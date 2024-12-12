@@ -2,7 +2,7 @@
  * A class representing color schemes and related information.
  *
  * @author Takuto Yanagida
- * @version 2024-11-19
+ * @version 2024-12-12
  */
 
 import { Color } from 'iroay/iroay';
@@ -281,6 +281,13 @@ export class Scheme {
 	 */
 	getColor(idx: number, vis: Vision = Vision.TRICHROMACY): Color {
 		return this.#vals[idx].getColor(vis);
+	}
+
+	/**
+	 * Gets the iterator of the values.
+	 */
+	[Symbol.iterator](): Iterator<Value> {
+		return this.#vals[Symbol.iterator]();
 	}
 
 	/**
