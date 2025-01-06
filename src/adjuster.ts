@@ -3,10 +3,10 @@
  * Provides methods to adjust color schemes based on a variety of parameters and constraints.
  *
  * @author Takuto Yanagida
- * @version 2024-12-12
+ * @version 2025-01-06
  */
 
-import { Problem, Domain, Solver, AssignmentList, FuzzyForwardChecking, SRS3, FuzzyBreakout } from 'stlics/stlics';
+import { Problem, Domain, Solver, AssignmentList, FuzzyForwardChecking, SRS3, FuzzyBreakout, Monitor } from 'stlics/stlics';
 
 import { Parameters, SolverType } from './parameters';
 import { Scheme } from './scheme';
@@ -94,11 +94,19 @@ export class Adjuster {
 		} else {
 			p = this.#createProblem();
 		}
-		org.setQualityInternally(p.worstSatisfactionDegree());
+		org.setQualityInternally(p.degree());
 
-		const s: Solver = this.#createSolver(p);
+		const s: Solver = this.#createSolver();
+
+		const m: Monitor = new Monitor();
+		m.setTimeLimit(this.#param.getTimeLimit());
+		m.setTarget(this.#param.getTargetDesirability());
+		m.setListener((solution: AssignmentList, worstDegree: number): boolean => {
+			return this.#notifyResult(solution, worstDegree);
+		});
+
 		try {
-			if (!s.solve()) {
+			if (!s.solve(p, m)) {
 				if (Adjuster.DEBUG) {
 					console.log('Adjuster: No solution found.');
 				}
@@ -199,34 +207,26 @@ export class Adjuster {
 	/**
 	 * Creates a solver for the specified problem, based on the solver type in the parameters.
 	 *
-	 * @param p - The problem to solve.
 	 * @returns A `Solver` instance configured with the current parameters.
 	 */
-	#createSolver(p: Problem): Solver {
+	#createSolver(): Solver {
 		let s: Solver;
 
 		switch (this.#param.getSolverType()) {
 			case SolverType.FC:
 			default:
-				s = new FuzzyForwardChecking(p);
+				s = new FuzzyForwardChecking();
 				(s as FuzzyForwardChecking).setUsingMinimumRemainingValuesHeuristics(true);
-				(s as FuzzyForwardChecking).setIncrementStepOfWorstSatisfactionDegree(0.05);
 				break;
 			case SolverType.SRS3:
-				s = new SRS3(p);
+				s = new SRS3();
 				(s as SRS3).setRandomness(false);
 				break;
 			case SolverType.FUZZY_BREAKOUT:
-				s = new FuzzyBreakout(p);
+				s = new FuzzyBreakout();
 				(s as FuzzyBreakout).setRandomness(false);
 				break;
 		}
-		s.setTimeLimit(this.#param.getTimeLimit());
-		s.setTargetRate(this.#param.getTargetDesirability());
-
-		s.addListener((solution: AssignmentList, worstDegree: number): boolean => {
-			return this.#notifyResult(solution, worstDegree);
-		});
 		return s;
 	}
 

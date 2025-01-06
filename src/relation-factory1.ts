@@ -5,7 +5,7 @@
  * Conditions are checked for various vision types and perceptual constraints.
  *
  * @author Takuto Yanagida
- * @version 2024-11-06
+ * @version 2025-01-06
  */
 
 import { FuzzyRelation, Relation } from 'stlics/stlics';
@@ -168,7 +168,7 @@ export class RelationFactory1 implements RelationFactory {
 
 }
 
-class ColorRelation implements FuzzyRelation {
+class ColorRelation extends FuzzyRelation {
 
 	#that: RelationFactory1;
 	#nop : number;  // Specifies which color index skips preservation (0 or 1)
@@ -191,6 +191,7 @@ class ColorRelation implements FuzzyRelation {
 	 * @param nop - Specifies which color index skips preservation constraints; 0 for the first color, 1 for the second color.
 	 */
 	constructor(that: RelationFactory1, idx0: number, idx1: number, cans0: Candidates, cans1: Candidates, nop: number) {
+		super();
 		this.#that = that;
 		this.#nop  = nop;
 		this.#idx0 = idx0;
@@ -209,7 +210,7 @@ class ColorRelation implements FuzzyRelation {
 	 * @param val1 - Index of the second color candidate.
 	 * @returns The degree of satisfaction for the relationship.
 	 */
-	satisfactionDegree(val0: number, val1: number): number {
+	degree(val0: number, val1: number): number {
 		const cv0: Value = this.#cans0.values()[val0];
 		const cv1: Value = this.#cans1.values()[val1];
 
