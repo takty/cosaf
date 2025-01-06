@@ -32,14 +32,14 @@
 	},
 	"packageManager": "yarn@1.22.22",
 	"dependencies": {
-		"esbuild": "^0.24.0",
+		"esbuild": "^0.24.2",
 		"glob": "^11.0.0",
 		"iroay": "github:takty/iroay",
 		"klales": "github:takty/klales",
-		"sass": "^1.82.0",
+		"sass": "^1.83.1",
 		"stlics": "github:takty/stlics",
 		"typescript": "^5.7.2",
-		"vite": "^6.0.3",
+		"vite": "^6.0.7",
 		"voronoi": "github:takty/voronoi"
 	},
 	"devDependencies": {
