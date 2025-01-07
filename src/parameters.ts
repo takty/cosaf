@@ -3,7 +3,7 @@
  * color vision checks, and solver settings.
  *
  * @author Takuto Yanagida
- * @version 2024-10-29
+ * @version 2025-01-07
  */
 
 import { Vision } from './vision';
@@ -114,9 +114,9 @@ export class Parameters {
 	#isRatioMode: boolean = true;
 
 	#doKeepHue : boolean = true;
-	#hueTol    : number  = 0.5;  // 0: same, 1: adjacent, 2-3: similar (max: 3.5)
+	#hueTol    : number  = 1.75;  // 0: same, 1: adjacent, 2-3: similar (max: 3.5)
 	#doKeepTone: boolean = true;
-	#toneTol   : number  = 0.5;  // 0.5: same, 2: similar (max: 4)
+	#toneTol   : number  = 2;  // 0.5: same, 2: similar (max: 4)
 
 	#conspicuity    : boolean = false;
 	#conspicuityRate: number  = 0.5;  // [0.01, 0.99]
