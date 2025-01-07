@@ -7,7 +7,7 @@
  * 4) Colors within double the tolerance or maximum standard limits for hue and tone in PCCS.
  *
  * @author Takuto Yanagida
- * @version 2024-11-19
+ * @version 2025-01-07
  */
 
 import { Voronoi } from 'voronoi/voronoi';
@@ -58,8 +58,8 @@ export class DomainFactory2 implements DomainFactory {
 	 */
 	build(omitIdx: number = -1): Candidates[] {
 		const ret: (Candidates | null)[] = [];
-		const at : number[][] = this.#scheme.getAdjacencyTable(omitIdx);
-		const vp : Voronoi = this.#createVoronoiPartition(at);
+		const at : number[][]            = this.#scheme.getAdjacencyTable(omitIdx);
+		const vp : Voronoi               = this.#createVoronoiPartition(at);
 
 		if (-1 === omitIdx) {
 			for (let i: number = 0; i < this.#scheme.size(); ++i) {
@@ -67,7 +67,7 @@ export class DomainFactory2 implements DomainFactory {
 
 				if (!this.#scheme.isFixed(i)) {
 					const grid   : Triplet[] = vp.getGrids(i, this.#res);
-					const maxDiff: number = this.#getMaxDiff(at, i);
+					const maxDiff: number    = this.#getMaxDiff(at, i);
 
 					for (const c of grid) {
 						const cv: Value | null = Value.newInstance(c);
@@ -80,7 +80,7 @@ export class DomainFactory2 implements DomainFactory {
 					}
 				}
 				if (!cd.values().length) {
-					const lab: Triplet = this.#scheme.getColor(i).asLab();
+					const lab: Triplet      = this.#scheme.getColor(i).asLab();
 					const cv : Value | null = Value.newInstance(lab);
 
 					if (cv !== null) {
@@ -99,7 +99,7 @@ export class DomainFactory2 implements DomainFactory {
 					continue;
 				}
 				const cd  : Candidates = new Candidates();
-				const grid: Triplet[] = vp.getGrids(i, this.#res);
+				const grid: Triplet[]  = vp.getGrids(i, this.#res);
 
 				if (!this.#scheme.isFixed(i)) {
 					const maxDiff: number = this.#getMaxDiff(at, i);
@@ -137,8 +137,8 @@ export class DomainFactory2 implements DomainFactory {
 			for (const can of ret) {
 				console.log('Candidate size: ' + (can as Candidates).values().length);
 			}
+			this.#printCandidateSize(ret as Candidates[]);
 		}
-		this.#printCandidateSize(ret as Candidates[]);
 		return ret as Candidates[];
 	}
 
@@ -202,7 +202,7 @@ export class DomainFactory2 implements DomainFactory {
 	}
 
 	/**
-	 * Determines if a Value instance qualifies as a valid candidate based on max differences.
+	 * Checks if a Value instance qualifies as a valid candidate based on max differences.
 	 *
 	 * @param idx - Index of the color in the scheme.
 	 * @param cv - Value instance to evaluate.
@@ -210,7 +210,8 @@ export class DomainFactory2 implements DomainFactory {
 	 * @returns True if the candidate is valid; otherwise, false.
 	 */
 	#isCandidate(idx: number, cv: Value, maxDiff: number): boolean {
-		if (maxDiff < this.#scheme.getColor(idx).differenceFrom(cv.getColor())) {
+		const d: number = this.#scheme.getColor(idx).differenceFrom(cv.getColor());
+		if (maxDiff < d) {
 			return false;
 		}
 		const org: Triplet = this.#scheme.getColor(idx).asTone();
@@ -240,10 +241,8 @@ export class DomainFactory2 implements DomainFactory {
 	 * @param ret - Array of Candidates representing potential colors.
 	 */
 	#printCandidateSize(ret: Candidates[]): void {
-		if (DomainFactory2.DEBUG) {
-			for (const r of ret) {
-				console.log('DomainFactory: Candidate Size: ' + r.values().length);
-			}
+		for (const r of ret) {
+			console.log('DomainFactory: Candidate Size: ' + r.values().length);
 		}
 	}
 

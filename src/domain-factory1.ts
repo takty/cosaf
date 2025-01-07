@@ -3,7 +3,7 @@
  * This factory produces candidates based on various color constraints.
  *
  * @author Takuto Yanagida
- * @version 2024-11-19
+ * @version 2025-01-07
  */
 
 import { Voronoi } from 'voronoi/voronoi';
@@ -53,7 +53,8 @@ export class DomainFactory1 implements DomainFactory {
 	 */
 	build(omitIdx: number = -1): Candidates[] {
 		const ret: (Candidates | null)[] = [];
-		const vp : Voronoi = this.#createVoronoiPartition(this.#scheme.getAdjacencyTable(omitIdx));
+		const at : number[][]            = this.#scheme.getAdjacencyTable(omitIdx);
+		const vp : Voronoi               = this.#createVoronoiPartition(at);
 
 		if (-1 === omitIdx) {
 			for (let i: number = 0; i < this.#scheme.size(); ++i) {
@@ -67,13 +68,13 @@ export class DomainFactory1 implements DomainFactory {
 						if (cv === null) {
 							continue;  // check saturation
 						}
-						if (this.#isCandidate(i, cv)) {
+						if (this.#isCandidate(i, cv, this.#maxDiff)) {
 							cd.values().push(cv);
 						}
 					}
 				}
 				if (!cd.values().length) {
-					const lab: Triplet = this.#scheme.getColor(i).asLab();
+					const lab: Triplet      = this.#scheme.getColor(i).asLab();
 					const cv : Value | null = Value.newInstance(lab);
 
 					if (cv !== null) {
@@ -102,7 +103,7 @@ export class DomainFactory1 implements DomainFactory {
 						if (cv === null) {
 							continue;  // check saturation
 						}
-						if (this.#isCandidate(i, cv)) {
+						if (this.#isCandidate(i, cv, this.#maxDiff)) {
 							cd.values().push(cv);
 						}
 						full.values().push(cv);
@@ -118,7 +119,7 @@ export class DomainFactory1 implements DomainFactory {
 				}
 				ret.push(cd);
 
-				if (fullDom == null || fullDom.values().length < full.values().length) {
+				if (fullDom === null || fullDom.values().length < full.values().length) {
 					fullDom = full;
 				}
 			}
@@ -129,8 +130,8 @@ export class DomainFactory1 implements DomainFactory {
 			for (const can of ret) {
 				console.log('Candidate size: ' + (can as Candidates).values().length);
 			}
+			this.#printCandidateSize(ret as Candidates[]);
 		}
-		this.#printCandidateSize(ret as Candidates[]);
 		return ret as Candidates[];
 	}
 
@@ -141,7 +142,7 @@ export class DomainFactory1 implements DomainFactory {
 	 * @returns A Voronoi instance representing the partitioned color space.
 	 */
 	#createVoronoiPartition(adjTab: number[][]): Voronoi {
-		const vp = new Voronoi(0, 100, -127, 127, -127, 127);  // L, a, b
+		const vp: Voronoi = new Voronoi(0, 100, -127, 127, -127, 127);  // L, a, b
 
 		for (let i: number = 0; i < this.#scheme.size(); ++i) {
 			vp.addSite(this.#scheme.getColor(i).asLab());
@@ -151,14 +152,16 @@ export class DomainFactory1 implements DomainFactory {
 	}
 
 	/**
-	 * Checks if a Value instance qualifies as a valid candidate for a given index.
+	 * Checks if a Value instance qualifies as a valid candidate based on max differences.
 	 *
 	 * @param idx - Index of the color in the scheme.
 	 * @param cv - Value instance to evaluate.
+	 * @param maxDiff - Maximum allowable difference to adjacent colors.
 	 * @returns True if the candidate is valid; otherwise, false.
 	 */
-	#isCandidate(idx: number, cv: Value): boolean {
-		if (this.#maxDiff < this.#scheme.getColor(idx).differenceFrom(cv.getColor())) {
+	#isCandidate(idx: number, cv: Value, maxDiff: number): boolean {
+		const d: number = this.#scheme.getColor(idx).differenceFrom(cv.getColor());
+		if (maxDiff < d) {
 			return false;
 		}
 		const org: Triplet = this.#scheme.getColor(idx).asTone();
@@ -173,7 +176,7 @@ export class DomainFactory1 implements DomainFactory {
 			}
 		}
 		if (this.#doPreserveTone) {
-			const d: number = (org[1] - can[1]) * (org[1] - can[1]) + (org[2] - can[2]) * (org[2] - can[2]);
+			const d: number = (can[1] - org[1]) * (can[1] - org[1]) + (can[2] - org[2]) * (can[2] - org[2]);
 
 			if (this.#dToneMax * this.#dToneMax < d) {
 				return false;
@@ -188,10 +191,8 @@ export class DomainFactory1 implements DomainFactory {
 	 * @param ret - Array of Candidates representing potential colors.
 	 */
 	#printCandidateSize(ret: Candidates[]): void {
-		if (DomainFactory1.DEBUG) {
-			for (const r of ret) {
-				console.log('DomainFactory: Candidate Size: ' + r.values().length);
-			}
+		for (const r of ret) {
+			console.log('DomainFactory: Candidate Size: ' + r.values().length);
 		}
 	}
 
