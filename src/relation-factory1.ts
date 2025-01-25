@@ -5,10 +5,9 @@
  * Conditions are checked for various vision types and perceptual constraints.
  *
  * @author Takuto Yanagida
- * @version 2025-01-06
+ * @version 2025-01-25
  */
 
-import { FuzzyRelation, Relation } from 'stlics/stlics';
 import { Scheme } from './scheme';
 import { Value } from './value';
 import { Vision } from './vision';
@@ -88,8 +87,19 @@ export class RelationFactory1 implements RelationFactory {
 	 * @param noPreservation - Specifies which index should skip preservation constraints; defaults to -1.
 	 * @returns A new Relation instance based on color separation and preservation constraints.
 	 */
-	newInstance(idx0: number, idx1: number, cans0: Candidates, cans1: Candidates, noPreservation: number = -1): Relation {
-		return new ColorRelation(this, idx0, idx1, cans0, cans1, noPreservation);
+	newInstance(idx0: number, idx1: number, cans0: Candidates, cans1: Candidates, noPreservation: number = -1): (v0: number, v1: number) => number {
+		const orig0: Value = cans0.getOriginal();
+		const orig1: Value = cans1.getOriginal();
+
+		return (val0: number, val1: number): number => {
+			const cv0: Value = cans0.values()[val0];
+			const cv1: Value = cans1.values()[val1];
+
+			const s : number = sig(this.sepScale(cv0, cv1));
+			const p0: number = (noPreservation === 0 || val0 === 0) ? 1 : sig(this.preScale(idx0, orig0, cv0));
+			const p1: number = (noPreservation === 1 || val1 === 0) ? 1 : sig(this.preScale(idx1, orig1, cv1));
+			return Math.min(s, p0, p1);
+		}
 	}
 
 
@@ -168,66 +178,12 @@ export class RelationFactory1 implements RelationFactory {
 
 }
 
-class ColorRelation extends FuzzyRelation {
-
-	#that: RelationFactory1;
-	#nop : number;  // Specifies which color index skips preservation (0 or 1)
-	#idx0: number;
-	#idx1: number;
-
-	#cans0: Candidates;
-	#cans1: Candidates;
-	#orig0: Value;
-	#orig1: Value;
-
-	/**
-	 * Initializes a new SeparationRelation with specified candidates and constraints.
-	 *
-	 * @param that - The RelationFactory1 instance containing constraint data.
-	 * @param idx0 - Index of the first color.
-	 * @param idx1 - Index of the second color.
-	 * @param cans0 - Candidates instance for the first color.
-	 * @param cans1 - Candidates instance for the second color.
-	 * @param nop - Specifies which color index skips preservation constraints; 0 for the first color, 1 for the second color.
-	 */
-	constructor(that: RelationFactory1, idx0: number, idx1: number, cans0: Candidates, cans1: Candidates, nop: number) {
-		super();
-		this.#that = that;
-		this.#nop  = nop;
-		this.#idx0 = idx0;
-		this.#idx1 = idx1;
-
-		this.#cans0 = cans0;
-		this.#cans1 = cans1;
-		this.#orig0 = cans0.getOriginal();
-		this.#orig1 = cans1.getOriginal();
-	}
-
-	/**
-	 * Calculates the satisfaction degree based on values of two colors.
-	 *
-	 * @param val0 - Index of the first color candidate.
-	 * @param val1 - Index of the second color candidate.
-	 * @returns The degree of satisfaction for the relationship.
-	 */
-	degree(val0: number, val1: number): number {
-		const cv0: Value = this.#cans0.values()[val0];
-		const cv1: Value = this.#cans1.values()[val1];
-
-		const s : number = this.#sig(this.#that.sepScale(cv0, cv1));
-		const p0: number = (this.#nop === 0 || val0 === 0) ? 1 : this.#sig(this.#that.preScale(this.#idx0, this.#orig0, cv0));
-		const p1: number = (this.#nop === 1 || val1 === 0) ? 1 : this.#sig(this.#that.preScale(this.#idx1, this.#orig1, cv1));
-		return Math.min(s, p0, p1);
-	}
-
-	/**
-	 * Sigmoid function for adjusting satisfaction levels.
-	 *
-	 * @param s - Satisfaction scale.
-	 * @returns The sigmoid-adjusted satisfaction.
-	 */
-	#sig(s: number): number {
-		return 1 / (1 + Math.exp(-12 * (s - 0.5)));
-	}
-
+/**
+ * Sigmoid function for adjusting satisfaction levels.
+ *
+ * @param s - Satisfaction scale.
+ * @returns The sigmoid-adjusted satisfaction.
+ */
+function sig(s: number): number {
+	return 1 / (1 + Math.exp(-12 * (s - 0.5)));
 }

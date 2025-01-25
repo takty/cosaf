@@ -3,10 +3,10 @@
  * Provides methods to adjust color schemes based on a variety of parameters and constraints.
  *
  * @author Takuto Yanagida
- * @version 2025-01-06
+ * @version 2025-01-25
  */
 
-import { Problem, Domain, Solver, AssignmentList, FuzzyForwardChecking, SRS3, FuzzyBreakout, Monitor } from 'stlics/stlics';
+import { Problem, Solver, AssignmentList, FuzzyForwardChecking, SRS3, FuzzyBreakout, Monitor } from 'stlics/stlics';
 
 import { Parameters, SolverType } from './parameters';
 import { Scheme } from './scheme';
@@ -137,14 +137,7 @@ export class Adjuster {
 		}
 		const p: Problem = new Problem();
 		for (const can of this.#cans) {
-			p.createVariable({
-				name  : 'v',
-				domain: p.createDomain({
-					min: 0,
-					max: can.values().length - 1
-				}) as Domain,
-				value: 0,
-			});
+			p.createVariable(p.createDomain(0, can.values().length - 1), 0, 'v');
 		}
 		for (const [idx0, idx1] of this.#org.getAdjacencies()) {
 			if (this.#org.isFixed(idx0) && this.#org.isFixed(idx1)) {  // No constraints if both are fixed colors
@@ -154,10 +147,7 @@ export class Adjuster {
 			if (this.#org.isFixed(idx0)) nom = 0;
 			if (this.#org.isFixed(idx1)) nom = 1;
 
-			p.createConstraint({
-				relation : rf.newInstance(idx0, idx1, this.#cans[idx0], this.#cans[idx1], nom),
-				variables: [p.variableAt(idx0), p.variableAt(idx1)],
-			});
+			p.createConstraint(rf.newInstance(idx0, idx1, this.#cans[idx0], this.#cans[idx1], nom), [p.variableAt(idx0), p.variableAt(idx1)]);
 		}
 		return p;
 	}
@@ -179,14 +169,7 @@ export class Adjuster {
 		}
 		const p: Problem = new Problem();
 		for (const can of this.#cans) {
-			p.createVariable({
-				name  : 'v',
-				domain: p.createDomain({
-					min: 0,
-					max: can.values().length - 1
-				}) as Domain,
-				value : 0
-			});
+			p.createVariable(p.createDomain(0, can.values().length - 1), 0, 'v');
 		}
 		for (const [idx0, idx1] of this.#org.getAdjacencies()) {
 			if (this.#org.isFixed(idx0) && this.#org.isFixed(idx1)) {  // No constraints if both are fixed colors
@@ -196,10 +179,7 @@ export class Adjuster {
 			if (idx0 == bottleneck || this.#org.isFixed(idx0)) nom = 0;
 			if (idx1 == bottleneck || this.#org.isFixed(idx1)) nom = 1;
 
-			p.createConstraint({
-				relation : rf.newInstance(idx0, idx1, this.#cans[idx0], this.#cans[idx1], nom),
-				variables: [p.variableAt(idx0), p.variableAt(idx1)],
-			});
+			p.createConstraint(rf.newInstance(idx0, idx1, this.#cans[idx0], this.#cans[idx1], nom), [p.variableAt(idx0), p.variableAt(idx1)]);
 		}
 		return p;
 	}

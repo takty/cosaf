@@ -5,10 +5,9 @@
  * Conditions are checked for various vision types and perceptual constraints.
  *
  * @author Takuto Yanagida
- * @version 2025-01-06
+ * @version 2025-01-25
  */
 
-import { FuzzyRelation, Relation } from 'stlics/stlics';
 import { Adjuster } from './adjuster';
 import { Scheme } from './scheme';
 import { Value } from './value';
@@ -74,11 +73,28 @@ export class RelationFactory2 implements RelationFactory {
 	 * @param noPreservation - Specifies which index should skip preservation constraints; defaults to -1.
 	 * @returns A new Relation instance based on color separation and preservation constraints.
 	 */
-	newInstance(_idx0: number, _idx1: number, cans0: Candidates, cans1: Candidates, noPreservation: number = -1): Relation {
+	newInstance(_idx0: number, _idx1: number, cans0: Candidates, cans1: Candidates, noPreservation: number = -1): (v0: number, v1: number) => number {
 		if (noPreservation !== 0 && noPreservation !== 1) {
 			this.#updateRatioToTrichromacy(cans0, cans1);
 		}
-		return new ColorRelation(this, this.#ratioToTri, cans0, cans1, noPreservation);
+		const orig0: Value = cans0.getOriginal();
+		const orig1: Value = cans1.getOriginal();
+
+		const tarDiff: number = orig0.differenceFrom(orig1) * this.#ratioToTri;
+
+		return (val0: number, val1: number): number => {
+			this.validateMaxDiff();  // Called here as it needs to be evaluated after all constraints are created
+			const cv0: Value = cans0.values()[val0];
+			const cv1: Value = cans1.values()[val1];
+
+			const s : number = sig(this.sepScale(cv0, cv1, tarDiff));
+			const p0: number = (noPreservation === 0) ? 1 : sig(this.preScale(orig0, cv0));
+			const p1: number = (noPreservation === 1) ? 1 : sig(this.preScale(orig1, cv1));
+
+			// const ave: number = ((p0 + p1) / 2 + s) / 2;
+			const min: number = Math.min(s, p0, p1);
+			return min;  // AVE or MIN
+		};
 	}
 
 	/**
@@ -263,69 +279,12 @@ export class RelationFactory2 implements RelationFactory {
 
 }
 
-class ColorRelation extends FuzzyRelation {
-
-	#that: RelationFactory2;
-	#nop : number;  // Specifies which color index skips preservation (0 or 1)
-
-	#cans0: Candidates;
-	#cans1: Candidates;
-	#orig0: Value;
-	#orig1: Value;
-
-	#tarDiff: number;
-
-	/**
-	 * Initializes a new SeparationRelation with specified candidates and constraints.
-	 *
-	 * @param that - The RelationFactory2 instance containing constraint data.
-	 * @param ratioToTri - Ratio to trichromacy for target difference.
-	 * @param cans0 - Candidates instance for the first color.
-	 * @param cans1 - Candidates instance for the second color.
-	 * @param nop - Specifies which color index skips preservation constraints; 0 for the first color, 1 for the second color.
-	 */
-	constructor(that: RelationFactory2, ratioToTri: number, cans0: Candidates, cans1: Candidates, nop: number) {
-		super();
-		this.#that = that;
-		this.#nop  = nop;
-
-		this.#cans0 = cans0;
-		this.#cans1 = cans1;
-		this.#orig0 = cans0.getOriginal();
-		this.#orig1 = cans1.getOriginal();
-
-		this.#tarDiff = this.#orig0.differenceFrom(this.#orig1) * ratioToTri;
-	}
-
-	/**
-	 * Calculates the satisfaction degree based on values of two colors.
-	 *
-	 * @param val0 - Index of the first color candidate.
-	 * @param val1 - Index of the second color candidate.
-	 * @returns The degree of satisfaction for the relationship.
-	 */
-	degree(val0: number, val1: number): number {
-		this.#that.validateMaxDiff();  // Called here as it needs to be evaluated after all constraints are created
-		const cv0: Value = this.#cans0.values()[val0];
-		const cv1: Value = this.#cans1.values()[val1];
-
-		const s : number = this.#sig(this.#that.sepScale(cv0, cv1, this.#tarDiff));
-		const p0: number = (this.#nop === 0) ? 1 : this.#sig(this.#that.preScale(this.#orig0, cv0));
-		const p1: number = (this.#nop === 1) ? 1 : this.#sig(this.#that.preScale(this.#orig1, cv1));
-
-		// const ave: number = ((p0 + p1) / 2 + s) / 2;
-		const min: number = Math.min(s, p0, p1);
-		return min;  // AVE or MIN
-	}
-
-	/**
-	 * Applies a sigmoid function for satisfaction adjustment.
-	 *
-	 * @param s - Satisfaction scale.
-	 * @returns The sigmoid-adjusted satisfaction.
-	 */
-	#sig(s: number): number {
-		return 1 / (1 + Math.exp(-9.19 * (s - 0.5)));  // 12 -> 9.19
-	}
-
+/**
+ * Applies a sigmoid function for satisfaction adjustment.
+ *
+ * @param s - Satisfaction scale.
+ * @returns The sigmoid-adjusted satisfaction.
+ */
+function sig(s: number): number {
+	return 1 / (1 + Math.exp(-9.19 * (s - 0.5)));  // 12 -> 9.19
 }
