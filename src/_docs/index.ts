@@ -2,18 +2,19 @@
  * Script for Sample
  *
  * @author Takuto Yanagida
- * @version 2025-01-07
+ * @version 2026-07-10
  */
 
+// @ts-expect-error Vite handles CSS imports.
 import 'klales/klales.min.css';
-import { Color } from 'iroay/iroay';
+import { Color, ColorUtil } from 'iroay/iroay';
 import { Scheme, Adjuster, Parameters, SolverType } from '../../cosaf';
 
 document.addEventListener('DOMContentLoaded', (): void => {
 	const orig = new Scheme([
-		Color.fromString('#f00')?.asInteger() as number,
-		Color.fromString('#090')?.asInteger() as number,
-		Color.fromString('#009')?.asInteger() as number,
+		ColorUtil.fromString('#f00')?.asInteger() as number,
+		ColorUtil.fromString('#090')?.asInteger() as number,
+		ColorUtil.fromString('#009')?.asInteger() as number,
 	]);
 	log(orig);
 
