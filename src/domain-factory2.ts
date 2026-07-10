@@ -1,5 +1,5 @@
 /**
- * Class for generating a domain of approximate colors.
+ * Class for generating domains of approximate colors.
  * This factory selects colors that satisfy all of the following conditions:
  * 1) Colors within the Voronoi-partitioned region.
  * 2) Colors representable in RGB.
@@ -7,7 +7,7 @@
  * 4) Colors within double the tolerance or maximum standard limits for hue and tone in PCCS.
  *
  * @author Takuto Yanagida
- * @version 2025-01-07
+ * @version 2026-07-10
  */
 
 import { Voronoi } from 'voronoi/voronoi';
