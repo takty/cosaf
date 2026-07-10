@@ -3,7 +3,7 @@
  * This factory produces candidates based on various color constraints.
  *
  * @author Takuto Yanagida
- * @version 2025-01-07
+ * @version 2026-07-10
  */
 
 import { Voronoi } from 'voronoi/voronoi';
@@ -93,21 +93,18 @@ export class DomainFactory1 implements DomainFactory {
 				}
 				const cd  : Candidates = new Candidates();
 				const full: Candidates = new Candidates();
+				const grid: Triplet[]  = vp.getGrids(i, this.#res);
 
-				if (!this.#scheme.isFixed(i)) {
-					const grid: Triplet[] = vp.getGrids(i, this.#res);
+				for (const c of grid) {
+					const cv: Value | null = Value.newInstance(c);
 
-					for (const c of grid) {
-						const cv: Value | null = Value.newInstance(c);
-
-						if (cv === null) {
-							continue;  // check saturation
-						}
-						if (this.#isCandidate(i, cv, this.#maxDiff)) {
-							cd.values().push(cv);
-						}
-						full.values().push(cv);
+					if (cv === null) {
+						continue;  // check saturation
 					}
+					if (!this.#scheme.isFixed(i) && this.#isCandidate(i, cv, this.#maxDiff)) {
+						cd.values().push(cv);
+					}
+					full.values().push(cv);
 				}
 				if (!cd.values().length) {
 					const lab: Triplet = this.#scheme.getColor(i).asLab();
@@ -123,8 +120,17 @@ export class DomainFactory1 implements DomainFactory {
 					fullDom = full;
 				}
 			}
-			ret[omitIdx] = fullDom as Candidates;
+			if (fullDom === null || !fullDom.values().length) {
+				fullDom = new Candidates();
 
+				const lab: Triplet = this.#scheme.getColor(omitIdx).asLab();
+				const cv : Value | null = Value.newInstance(lab);
+
+				if (cv !== null) {
+					fullDom.values().push(cv);
+				}
+			}
+			ret[omitIdx] = fullDom;
 		}
 		if (DomainFactory1.DEBUG) {
 			for (const can of ret) {
