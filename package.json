@@ -30,19 +30,17 @@
 		"dev": "vite src/_docs --base ./",
 		"debug": "tsc --noEmit -w"
 	},
-	"packageManager": "yarn@1.22.22",
+	"packageManager": "yarn@4.17.1",
 	"dependencies": {
-		"esbuild": "^0.25.2",
-		"glob": "^11.0.1",
+		"esbuild": "^0.28.1",
 		"iroay": "github:takty/iroay",
 		"klales": "github:takty/klales",
-		"sass": "^1.86.3",
 		"stlics": "github:takty/stlics",
-		"typescript": "^5.8.2",
-		"vite": "^6.2.5",
+		"typescript": "^7.0.2",
+		"vite": "^8.1.4",
 		"voronoi": "github:takty/voronoi"
 	},
 	"devDependencies": {
-		"vite-tsconfig-paths": "^5.1.4"
+		"vite-tsconfig-paths": "^6.1.1"
 	}
 }
