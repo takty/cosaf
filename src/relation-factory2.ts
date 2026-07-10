@@ -15,7 +15,7 @@ import { Vision } from './vision';
 import { Parameters } from './parameters';
 import { Candidates } from './candidates';
 import { RelationFactory } from './relation-factory';
-import { DomainFactory2 } from './domain-factory2';
+import { MAX_DELTA_HUE, MAX_DELTA_TONE } from './domain-factory';
 
 export class RelationFactory2 implements RelationFactory {
 
@@ -57,11 +57,11 @@ export class RelationFactory2 implements RelationFactory {
 
 		this.#doKeepHue = p.doPreserveHue();
 		this.#hueTol    = p.getHueTolerance();
-		this.#maxHueD   = Math.min(this.#hueTol * 2, DomainFactory2.MAX_DELTA_HUE);
+		this.#maxHueD   = Math.min(this.#hueTol * 2, MAX_DELTA_HUE);
 
 		this.#doKeepTone = p.doPreserveTone();
 		this.#toneTol    = p.getToneTolerance();
-		this.#maxToneD   = Math.min(this.#toneTol * 2, DomainFactory2.MAX_DELTA_TONE);
+		this.#maxToneD   = Math.min(this.#toneTol * 2, MAX_DELTA_TONE);
 
 		this.#bottleneckColor = bottleneckColor;
 	}

@@ -7,6 +7,9 @@
 
 import { Candidates } from './candidates';
 
+export const MAX_DELTA_HUE : number = 12;  // Based on PCCS standard
+export const MAX_DELTA_TONE: number = Math.sqrt(10 * 10 + 10 * 10);  // Based on PCCS standard
+
 export interface DomainFactory {
 
 	/**

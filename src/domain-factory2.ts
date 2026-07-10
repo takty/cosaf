@@ -14,7 +14,7 @@ import { Voronoi } from 'voronoi/voronoi';
 import { Scheme } from './scheme';
 import { Value } from './value';
 import { Parameters } from './parameters';
-import { DomainFactory } from './domain-factory';
+import { DomainFactory, MAX_DELTA_HUE, MAX_DELTA_TONE } from './domain-factory';
 import { Candidates } from './candidates';
 
 type Triplet = [number, number, number];
@@ -22,9 +22,6 @@ type Triplet = [number, number, number];
 export class DomainFactory2 implements DomainFactory {
 
 	static DEBUG: boolean = false;
-
-	static MAX_DELTA_HUE : number = 12;  // Based on PCCS standard
-	static MAX_DELTA_TONE: number = Math.sqrt(10 * 10 + 10 * 10);  // Based on PCCS standard
 
 	#scheme        : Scheme;
 	#res           : number;
@@ -46,8 +43,8 @@ export class DomainFactory2 implements DomainFactory {
 		this.#doPreserveHue  = param.doPreserveHue();
 		this.#doPreserveTone = param.doPreserveTone();
 
-		this.#dHueMax  = Math.min(param.getHueTolerance() * 2, DomainFactory2.MAX_DELTA_HUE);
-		this.#dToneMax = Math.min(param.getToneTolerance() * 2, DomainFactory2.MAX_DELTA_TONE);
+		this.#dHueMax  = Math.min(param.getHueTolerance() * 2, MAX_DELTA_HUE);
+		this.#dToneMax = Math.min(param.getToneTolerance() * 2, MAX_DELTA_TONE);
 	}
 
 	/**

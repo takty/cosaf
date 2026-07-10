@@ -5,7 +5,7 @@
  * Conditions are checked for various vision types and perceptual constraints.
  *
  * @author Takuto Yanagida
- * @version 2025-01-25
+ * @version 2026-07-10
  */
 
 import { Adjuster } from './adjuster';
@@ -15,7 +15,7 @@ import { Vision } from './vision';
 import { Parameters } from './parameters';
 import { Candidates } from './candidates';
 import { RelationFactory } from './relation-factory';
-import { DomainFactory2 } from './domain-factory2';
+import { MAX_DELTA_HUE, MAX_DELTA_TONE } from './domain-factory';
 
 export class RelationFactory3 implements RelationFactory {
 
@@ -49,11 +49,11 @@ export class RelationFactory3 implements RelationFactory {
 
 		this.doKeepHue = param.doPreserveHue();
 		this.hueTol    = param.getHueTolerance();
-		this.maxHueD   = Math.min(this.hueTol * 2, DomainFactory2.MAX_DELTA_HUE);
+		this.maxHueD   = Math.min(this.hueTol * 2, MAX_DELTA_HUE);
 
 		this.doKeepTone = param.doPreserveTone();
-		this.toneTol    = Math.min(this.maxToneD * 2, DomainFactory2.MAX_DELTA_TONE);
 		this.maxToneD   = param.getToneTolerance();
+		this.toneTol    = Math.min(this.maxToneD * 2, MAX_DELTA_TONE);
 	}
 
 	newInstance(_idx0: number, _idx1: number, cans0: Candidates, cans1: Candidates, noPreservation: number = -1): (v0: number, v1: number) => number {
