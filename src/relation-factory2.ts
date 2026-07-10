@@ -5,7 +5,7 @@
  * Conditions are checked for various vision types and perceptual constraints.
  *
  * @author Takuto Yanagida
- * @version 2025-01-25
+ * @version 2026-07-10
  */
 
 import { Adjuster } from './adjuster';
@@ -51,6 +51,9 @@ export class RelationFactory2 implements RelationFactory {
 		this.#doCheckP = p.doCheckVision(Vision.PROTANOPIA);
 		this.#doCheckD = p.doCheckVision(Vision.DEUTERANOPIA);
 		this.#doCheckM = p.doCheckVision(Vision.MONOCHROMACY);
+		if (!this.#doCheckP && !this.#doCheckD && !this.#doCheckM) {
+			throw new RangeError();
+		}
 
 		this.#doKeepHue = p.doPreserveHue();
 		this.#hueTol    = p.getHueTolerance();

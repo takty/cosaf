@@ -5,7 +5,7 @@
  * Conditions are checked for various vision types and perceptual constraints.
  *
  * @author Takuto Yanagida
- * @version 2025-01-25
+ * @version 2026-07-10
  */
 
 import { Scheme } from './scheme';
@@ -150,7 +150,8 @@ export class RelationFactory1 implements RelationFactory {
 
 		let sH: number = 1024, sT: number = 1024;
 		if (this.#doKeepHue) {
-			const d: number = Math.abs(m0 - o0);
+			const as = Math.abs(m0 - o0);
+			const d  = Math.min(as, 24 - as);
 			sH = this.#p2s(idx, d, this.#hueTol, this.#maxHueTol);
 		}
 		if (this.#doKeepTone) {

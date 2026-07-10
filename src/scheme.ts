@@ -2,7 +2,7 @@
  * A class representing color schemes and related information.
  *
  * @author Takuto Yanagida
- * @version 2024-12-12
+ * @version 2026-07-10
  */
 
 import { Color } from 'iroay/iroay';
@@ -206,6 +206,15 @@ export class Scheme {
 	}
 
 	/**
+	 * Returns the list of fixed flags.
+	 *
+	 * @returns A copy of the fixed flag list.
+	 */
+	getFixedFlags(): boolean[] {
+		return [...this.#fixed];
+	}
+
+	/**
 	 * Provides the adjacency table, optionally omitting a specified index.
 	 *
 	 * @param omittedIndex - Index to omit from the adjacency table; defaults to -1.
@@ -243,9 +252,13 @@ export class Scheme {
 			const c: number = this.#vals[i].getColor().asConspicuity();
 			if (c < min) {
 				min = c;
-			} else if (max < c) {
+			}
+			if (max < c) {
 				max = c;
 			}
+		}
+		if (max === min) {
+			return new Array(this.#vals.length).fill(0);
 		}
 		for (let i: number = 0; i < this.#vals.length; ++i) {
 			ret.push((this.#vals[i].getColor().asConspicuity() - min) / (max - min));

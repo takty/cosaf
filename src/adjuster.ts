@@ -3,7 +3,7 @@
  * Provides methods to adjust color schemes based on a variety of parameters and constraints.
  *
  * @author Takuto Yanagida
- * @version 2025-01-25
+ * @version 2026-07-10
  */
 
 import { Problem, Solver, AssignmentList, FuzzyForwardChecking, SRS3, FuzzyBreakout, Monitor } from 'stlics/stlics';
@@ -226,7 +226,7 @@ export class Adjuster {
 			res.push(cv.getColor().asInteger());
 		}
 
-		this.#mod = new Scheme(res, this.#org.getAdjacencies(), null, worstDegree);
+		this.#mod = new Scheme(res, this.#org.getAdjacencies(), this.#org.getFixedFlags(), worstDegree);
 		let finish: boolean = (worstDegree > 0.999);  // Automatic termination
 
 		for (const al of this.#als) {
