@@ -3,10 +3,10 @@
  * Provides methods for creating color instances and calculating differences in Lab color space.
  *
  * @author Takuto Yanagida
- * @version 2024-11-06
+ * @version 2026-07-10
  */
 
-import { Color, ColorSpace } from 'iroay/iroay';
+import { Color, ColorSpace, ColorUtil } from 'iroay/iroay';
 import { Vision } from './vision';
 
 type Triplet = [number, number, number];
@@ -47,7 +47,7 @@ export class Value {
 		if (colorInt_c instanceof Color) {
 			this.#cv = colorInt_c;
 		} else {
-			this.#cv = Color.fromInteger(colorInt_c);
+			this.#cv = ColorUtil.fromInteger(colorInt_c);
 		}
 		this.#cP = this.#cv.toProtanopia();
 		this.#cD = this.#cv.toDeuteranopia();
