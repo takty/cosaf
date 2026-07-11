@@ -3,7 +3,7 @@
  * Provides methods to adjust color schemes based on a variety of parameters and constraints.
  *
  * @author Takuto Yanagida
- * @version 2026-07-10
+ * @version 2026-07-12
  */
 
 import { Problem, Solver, AssignmentList, FuzzyForwardChecking, SRS3, FuzzyBreakout, Monitor } from 'stlics/stlics';
@@ -15,8 +15,7 @@ import { Value } from './value';
 import { RelationFactory } from './relation-factory';
 import { RelationFactory1 } from './relation-factory1';
 import { RelationFactory2 } from './relation-factory2';
-import { DomainFactory1 } from './domain-factory1';
-import { DomainFactory2 } from './domain-factory2';
+import { DomainFactory } from './domain-factory';
 
 export class Adjuster {
 
@@ -130,10 +129,10 @@ export class Adjuster {
 		let rf: RelationFactory;
 		if (this.#param.isRatioModeEnabled()) {
 			rf         = new RelationFactory2(this.#org, this.#param);
-			this.#cans = new DomainFactory2(this.#org, this.#param).build();
+			this.#cans = new DomainFactory(this.#org, this.#param, 'ratio').build();
 		} else {
 			rf         = new RelationFactory1(this.#org, this.#param);
-			this.#cans = new DomainFactory1(this.#org, this.#param).build();
+			this.#cans = new DomainFactory(this.#org, this.#param, 'standard').build();
 		}
 		const p: Problem = new Problem();
 		for (const can of this.#cans) {
@@ -162,10 +161,10 @@ export class Adjuster {
 		let rf: RelationFactory;
 		if (this.#param.isRatioModeEnabled()) {
 			rf         = new RelationFactory2(this.#org, this.#param, bottleneck);
-			this.#cans = new DomainFactory2(this.#org, this.#param).build(bottleneck);
+			this.#cans = new DomainFactory(this.#org, this.#param, 'ratio').buildWithBottleneck(bottleneck);
 		} else {
 			rf         = new RelationFactory1(this.#org, this.#param);
-			this.#cans = new DomainFactory1(this.#org, this.#param).build(bottleneck);
+			this.#cans = new DomainFactory(this.#org, this.#param, 'standard').buildWithBottleneck(bottleneck);
 		}
 		const p: Problem = new Problem();
 		for (const can of this.#cans) {
