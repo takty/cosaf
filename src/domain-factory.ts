@@ -25,33 +25,32 @@ export class DomainFactory {
 
 	static DEBUG: boolean = true;
 
-	#scheme: Scheme;
-	#res   : number;
+	#scheme     : Scheme;
+	#isRatioMode: boolean;
+	#res        : number;
 
-	#doPreserveHue : boolean;
-	#doPreserveTone: boolean;
-	#isRatioMode   : boolean;
+	#doKeepHue: boolean;
+	#doKeepTon: boolean;
 
-	#dHueMax      : number;
-	#dToneMax     : number;
-	#commonMaxDiff: number = Number.NaN;
+	#dMaxHue   : number;
+	#dMaxTon   : number;
+	#comMaxDiff: number = Number.NaN;
 
 	constructor(s: Scheme, p: Parameters) {
-		this.#scheme = s;
-		this.#res    = p.getResolution();
-
-		this.#doPreserveHue  = p.doPreserveHue();
-		this.#doPreserveTone = p.doPreserveTone();
-
+		this.#scheme      = s;
 		this.#isRatioMode = p.isRatioModeEnabled();
+		this.#res         = p.getResolution();
+
+		this.#doKeepHue = p.doPreserveHue();
+		this.#doKeepTon = p.doPreserveTone();
 
 		if (this.#isRatioMode) {
-			this.#dHueMax  = Math.min(p.getHueTolerance() * 2, MAX_DELTA_HUE);
-			this.#dToneMax = Math.min(p.getToneTolerance() * 2, MAX_DELTA_TONE);
+			this.#dMaxHue = Math.min(p.getHueTolerance() * 2, MAX_DELTA_HUE);
+			this.#dMaxTon = Math.min(p.getToneTolerance() * 2, MAX_DELTA_TONE);
 		} else {
-			this.#dHueMax       = p.getMaximumHueDifference();
-			this.#dToneMax      = p.getMaximumToneDifference();
-			this.#commonMaxDiff = p.getMaximumDifference();
+			this.#dMaxHue    = p.getMaximumHueDifference();
+			this.#dMaxTon    = p.getMaximumToneDifference();
+			this.#comMaxDiff = p.getMaximumDifference();
 		}
 	}
 
@@ -176,18 +175,18 @@ export class DomainFactory {
 		const org: Triplet = this.#scheme.getColor(idx).asTone();
 		const can: Triplet = cv.getColor().asTone();
 
-		if (this.#doPreserveHue) {
+		if (this.#doKeepHue) {
 			const as: number = Math.abs(can[0] - org[0]);
 			const d : number = Math.min(as, 24 - as);
 
-			if (this.#dHueMax < d) {
+			if (this.#dMaxHue < d) {
 				return false;
 			}
 		}
-		if (this.#doPreserveTone) {
+		if (this.#doKeepTon) {
 			const d: number = (can[1] - org[1]) * (can[1] - org[1]) + (can[2] - org[2]) * (can[2] - org[2]);
 
-			if (this.#dToneMax * this.#dToneMax < d) {
+			if (this.#dMaxTon * this.#dMaxTon < d) {
 				return false;
 			}
 		}
@@ -242,7 +241,7 @@ export class DomainFactory {
 			if (DomainFactory.DEBUG) console.log('DomainFactory: Max Distance: ' + max);
 			return max;
 		} else {
-			return this.#commonMaxDiff;
+			return this.#comMaxDiff;
 		}
 	}
 
