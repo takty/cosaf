@@ -13,8 +13,6 @@ import { Scheme } from './scheme';
 import { Candidates } from './candidates';
 import { Value } from './value';
 import { RelationFactory } from './relation-factory';
-import { RelationFactory1 } from './relation-factory1';
-import { RelationFactory2 } from './relation-factory2';
 import { DomainFactory } from './domain-factory';
 
 export class Adjuster {
@@ -126,12 +124,7 @@ export class Adjuster {
 	 * @returns A `Problem` instance based on the current parameters.
 	 */
 	#createProblem(): Problem {
-		let rf: RelationFactory;
-		if (this.#param.isRatioModeEnabled()) {
-			rf = new RelationFactory2(this.#org, this.#param);
-		} else {
-			rf = new RelationFactory1(this.#org, this.#param);
-		}
+		const rf: RelationFactory = new RelationFactory(this.#org, this.#param);
 		this.#cans = new DomainFactory(this.#org, this.#param).build();
 
 		const p: Problem = new Problem();
@@ -158,12 +151,7 @@ export class Adjuster {
 	 * @returns A `Problem` instance with bottleneck constraints applied.
 	 */
 	#createProblemWithBottleneck(bottleneck: number): Problem {
-		let rf: RelationFactory;
-		if (this.#param.isRatioModeEnabled()) {
-			rf = new RelationFactory2(this.#org, this.#param, bottleneck);
-		} else {
-			rf = new RelationFactory1(this.#org, this.#param);
-		}
+		const rf: RelationFactory = new RelationFactory(this.#org, this.#param, bottleneck);
 		this.#cans = new DomainFactory(this.#org, this.#param).buildWithBottleneck(bottleneck);
 
 		const p: Problem = new Problem();
