@@ -2,7 +2,7 @@
  * A class representing color schemes and related information.
  *
  * @author Takuto Yanagida
- * @version 2026-07-10
+ * @version 2026-07-12
  */
 
 import { Color } from 'iroay/iroay';
@@ -192,9 +192,7 @@ export class Scheme {
 		return lowDiff;
 	}
 
-
 	// -------------------------------------------------------------------------
-
 
 	/**
 	 * Returns the list of adjacency pairs.
