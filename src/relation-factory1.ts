@@ -15,6 +15,8 @@ import { Parameters } from './parameters';
 import { Candidates } from './candidates';
 import { RelationFactory } from './relation-factory';
 
+export const SIGMOID_GAIN: number = 2 * Math.log(99);  // Maps scale 0 and 1 approximately to 0.01 and 0.99
+
 export class RelationFactory1 implements RelationFactory {
 
 	#doCheckP: boolean;
@@ -99,6 +101,7 @@ export class RelationFactory1 implements RelationFactory {
 			const s : number = sig(this.sepScale(cv0, cv1));
 			const p0: number = (noPreservation === 0 || val0 === 0) ? 1 : sig(this.preScale(idx0, orig0, cv0));
 			const p1: number = (noPreservation === 1 || val1 === 0) ? 1 : sig(this.preScale(idx1, orig1, cv1));
+
 			return Math.min(s, p0, p1);
 		}
 	}
@@ -115,33 +118,25 @@ export class RelationFactory1 implements RelationFactory {
 	 * @returns Satisfaction scale for separation constraints.
 	 */
 	sepScale(v0: Value, v1: Value): number {
-		let dP: number = 1024, dD: number = 1024, dM: number = 1024;
-		let dT: number = 1024;
+		let dP: number = 1024, dD: number = 1024, dM: number = 1024, dT: number = 1024;
 
-		if (this.#doCheckP) {
-			dP = this.#s2s(v0.differenceFrom(v1, Vision.PROTANOPIA), this.#tarDiffP);
-		}
-		if (this.#doCheckD) {
-			dD = this.#s2s(v0.differenceFrom(v1, Vision.DEUTERANOPIA), this.#tarDiffD);
-		}
-		if (this.#doCheckM) {
-			dM = this.#s2s(v0.differenceFrom(v1, Vision.MONOCHROMACY), this.#tarDiffM);
-		}
-		if (this.#doCheckT) {
-			dT = this.#s2s(v0.differenceFrom(v1), this.#tarDiffT);
-		}
+		if (this.#doCheckP) dP = this.#s2s(v0.differenceFrom(v1, Vision.PROTANOPIA), this.#tarDiffP);
+		if (this.#doCheckD) dD = this.#s2s(v0.differenceFrom(v1, Vision.DEUTERANOPIA), this.#tarDiffD);
+		if (this.#doCheckM) dM = this.#s2s(v0.differenceFrom(v1, Vision.MONOCHROMACY), this.#tarDiffM);
+		if (this.#doCheckT) dT = this.#s2s(v0.differenceFrom(v1), this.#tarDiffT);
+
 		return Math.min(dP, dD, dM, dT);
 	}
 
 	/**
-	 * Converts the distance to a satisfaction scale based on target difference.
+	 * Converts a color difference to a satisfaction scale.
 	 *
-	 * @param d - Calculated difference.
-	 * @param tarD - Target difference for satisfaction.
-	 * @returns The satisfaction scale based on the difference to the target.
+	 * @param d - Calculated color difference.
+	 * @param tarD - Target color difference.
+	 * @returns Satisfaction scale based on how far the difference falls below the target.
 	 */
 	#s2s(d: number, tarD: number): number {
-		return 1 - (tarD - d) / this.#maxDiff;  // Proportional to the distance from the target difference
+		return 1 - (tarD - d) / this.#maxDiff;
 	}
 
 	/**
@@ -188,7 +183,7 @@ export class RelationFactory1 implements RelationFactory {
 		if (this.#doCheckConspicuity) {
 			tol = tol * (1 - this.#conspicuityRate * this.#conspicuityArray[idx]);
 		}
-		return (maxD - d) / (maxD - tol);
+		return 1 - (d - tol) / (maxD - tol);
 	}
 
 }
@@ -200,5 +195,5 @@ export class RelationFactory1 implements RelationFactory {
  * @returns The sigmoid-adjusted satisfaction.
  */
 function sig(s: number): number {
-	return 1 / (1 + Math.exp(-12 * (s - 0.5)));
+	return 1 / (1 + Math.exp(-SIGMOID_GAIN * (s - 0.5)));
 }
