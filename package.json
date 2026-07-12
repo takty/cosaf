@@ -28,7 +28,8 @@
 		"build": "node ./build.js",
 		"docs": "vite build",
 		"dev": "vite src/_docs --base ./",
-		"debug": "tsc --noEmit -w"
+		"debug": "tsc --noEmit -w",
+		"sample": "tsx src/_sample/index.ts"
 	},
 	"packageManager": "yarn@4.17.1",
 	"dependencies": {
@@ -39,5 +40,8 @@
 		"typescript": "^7.0.2",
 		"vite": "^8.1.4",
 		"voronoi": "github:takty/voronoi"
+	},
+	"devDependencies": {
+		"tsx": "^4.23.0"
 	}
 }
