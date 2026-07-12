@@ -27,32 +27,31 @@ export class RelationFactory {
 	#doCheckD: boolean;
 	#doCheckM: boolean;
 
-	#doKeepH : boolean;
-	#doKeepT: boolean;
-	#tolH        : number;
-	#tolT       : number;
+	#doKeepHue: boolean;
+	#doKeepTon: boolean;
+	#tolHue   : number;
+	#tolTon   : number;
 
 	#doCheckConspicuity: boolean;
 	#conspicuityRate   : number;
 	#conspicuityArray  : number[];
 
-	#dHueMax : number;
-	#dToneMax: number;
-
+	#dMaxHue: number;
+	#dMaxTon: number;
 	#maxDiff: number = Number.NaN;
 
 	// ---
 
 	#doCheckT: boolean = false;
-	#tarDiffP: number = 0;
-	#tarDiffD: number = 0;
-	#tarDiffM: number = 0;
-	#tarDiffT: number = 0;
+	#dTarP   : number = 0;
+	#dTarD   : number = 0;
+	#dTarM   : number = 0;
+	#dTarT   : number = 0;
 
 	// ---
 
-	#ratioToTri     : number = 1;  // Target color difference relative to trichromacy
-	#bottleneckColor: number = -1;
+	#rToTri: number = 1;  // Target color difference relative to trichromacy
+	#bnC   : number = -1;
 
 	/**
 	 * Initializes the RelationFactory with a color scheme and parameter settings.
@@ -62,44 +61,44 @@ export class RelationFactory {
 	 * @param bottleneckColor - Optional index for the bottleneck color; defaults to -1.
 	 */
 	constructor(s: Scheme, p: Parameters, bottleneckColor: number = -1) {
-		this.#scheme = s;
+		this.#scheme      = s;
 		this.#isRatioMode = p.isRatioModeEnabled();
 
 		this.#doCheckP = p.doCheckVision(Vision.PROTANOPIA);
 		this.#doCheckD = p.doCheckVision(Vision.DEUTERANOPIA);
 		this.#doCheckM = p.doCheckVision(Vision.MONOCHROMACY);
 
-		this.#doKeepH = p.doPreserveHue();
-		this.#doKeepT = p.doPreserveTone();
-		this.#tolH    = p.getHueTolerance();
-		this.#tolT    = p.getToneTolerance();
+		this.#doKeepHue = p.doPreserveHue();
+		this.#doKeepTon = p.doPreserveTone();
+		this.#tolHue    = p.getHueTolerance();
+		this.#tolTon    = p.getToneTolerance();
 
 		this.#doCheckConspicuity = p.doCheckConspicuity();
 		this.#conspicuityRate    = p.getConspicuityRate();
 		this.#conspicuityArray   = this.#doCheckConspicuity ? s.getConspicuityArray() : [];
 
 		if (this.#isRatioMode) {
-			this.#dHueMax  = Math.min(this.#tolH * 2, MAX_DELTA_HUE);
-			this.#dToneMax = Math.min(this.#tolT * 2, MAX_DELTA_TONE);
+			this.#dMaxHue = Math.min(this.#tolHue * 2, MAX_DELTA_HUE);
+			this.#dMaxTon = Math.min(this.#tolTon * 2, MAX_DELTA_TONE);
 
 			if (!this.#doCheckP && !this.#doCheckD && !this.#doCheckM) throw new RangeError();
-			this.#bottleneckColor = bottleneckColor;
+			this.#bnC = bottleneckColor;
 		} else {
-			this.#dHueMax  = p.getMaximumHueDifference();
-			this.#dToneMax = p.getMaximumToneDifference();
+			this.#dMaxHue = p.getMaximumHueDifference();
+			this.#dMaxTon = p.getMaximumToneDifference();
 
 			this.#doCheckT = p.doCheckVision(Vision.TRICHROMACY);
 
-			this.#tarDiffP = p.getTargetDifference(Vision.PROTANOPIA);
-			this.#tarDiffD = p.getTargetDifference(Vision.DEUTERANOPIA);
-			this.#tarDiffM = p.getTargetDifference(Vision.MONOCHROMACY);
-			this.#tarDiffT = p.getTargetDifference(Vision.TRICHROMACY);
+			this.#dTarP = p.getTargetDifference(Vision.PROTANOPIA);
+			this.#dTarD = p.getTargetDifference(Vision.DEUTERANOPIA);
+			this.#dTarM = p.getTargetDifference(Vision.MONOCHROMACY);
+			this.#dTarT = p.getTargetDifference(Vision.TRICHROMACY);
 
 			const ds: number[] = [0];
-			if (this.#doCheckP) ds.push(this.#tarDiffP - s.getLowestDifference(Vision.PROTANOPIA));
-			if (this.#doCheckD) ds.push(this.#tarDiffD - s.getLowestDifference(Vision.DEUTERANOPIA));
-			if (this.#doCheckM) ds.push(this.#tarDiffM - s.getLowestDifference(Vision.MONOCHROMACY));
-			if (this.#doCheckT) ds.push(this.#tarDiffT - s.getLowestDifference(Vision.TRICHROMACY));
+			if (this.#doCheckP) ds.push(this.#dTarP - s.getLowestDifference(Vision.PROTANOPIA));
+			if (this.#doCheckD) ds.push(this.#dTarD - s.getLowestDifference(Vision.DEUTERANOPIA));
+			if (this.#doCheckM) ds.push(this.#dTarM - s.getLowestDifference(Vision.MONOCHROMACY));
+			if (this.#doCheckT) ds.push(this.#dTarT - s.getLowestDifference(Vision.TRICHROMACY));
 			this.#maxDiff = Math.max(...ds);
 		}
 	}
@@ -111,14 +110,14 @@ export class RelationFactory {
 	 * @param index2 - The index of the second color.
 	 * @param cvs1 - The first set of color candidates.
 	 * @param cvs2 - The second set of color candidates.
-	 * @param noPreserve - An optional parameter for skipping preservation checks.
+	 * @param skipPres - Index to skip preservation checks for; -1 skips none.
 	 * @returns A new `Relation` function representing the color relationship.
 	 */
-	newInstance(index1: number, index2: number, cvs1: Candidates, cvs2: Candidates, noPreserve: number = -1): (v0: number, v1: number) => number {
+	newInstance(index1: number, index2: number, cvs1: Candidates, cvs2: Candidates, skipPres: number = -1): (v0: number, v1: number) => number {
 		if (this.#isRatioMode) {
-			return this.#newInstanceRatio(index1, index2, cvs1, cvs2, noPreserve);
+			return this.#newInstanceRatio(index1, index2, cvs1, cvs2, skipPres);
 		} else {
-			return this.#newInstanceStandard(index1, index2, cvs1, cvs2, noPreserve);
+			return this.#newInstanceStandard(index1, index2, cvs1, cvs2, skipPres);
 		}
 	}
 
@@ -129,20 +128,20 @@ export class RelationFactory {
 	 * @param idx1 - Index of the second color.
 	 * @param cans0 - Candidates instance for the first color.
 	 * @param cans1 - Candidates instance for the second color.
-	 * @param noPreservation - Specifies which index should skip preservation constraints; defaults to -1.
+	 * @param skipPres - Index to skip preservation checks for; -1 skips none.
 	 * @returns A new Relation instance based on color separation and preservation constraints.
 	 */
-	#newInstanceStandard(idx0: number, idx1: number, cans0: Candidates, cans1: Candidates, noPreservation: number = -1): (v0: number, v1: number) => number {
-		const orig0: Value = cans0.getOriginal();
-		const orig1: Value = cans1.getOriginal();
+	#newInstanceStandard(idx0: number, idx1: number, cans0: Candidates, cans1: Candidates, skipPres: number = -1): (v0: number, v1: number) => number {
+		const o0: Value = cans0.getOriginal();
+		const o1: Value = cans1.getOriginal();
 
 		return (val0: number, val1: number): number => {
 			const cv0: Value = cans0.values()[val0];
 			const cv1: Value = cans1.values()[val1];
 
 			const s : number = sig(this.#sepScaleStandard(cv0, cv1));
-			const p0: number = (noPreservation === 0 || val0 === 0) ? 1 : sig(this.#preScale(idx0, orig0, cv0));
-			const p1: number = (noPreservation === 1 || val1 === 0) ? 1 : sig(this.#preScale(idx1, orig1, cv1));
+			const p0: number = (skipPres === 0 || val0 === 0) ? 1 : sig(this.#preScale(idx0, o0, cv0));
+			const p1: number = (skipPres === 1 || val1 === 0) ? 1 : sig(this.#preScale(idx1, o1, cv1));
 
 			return Math.min(s, p0, p1);
 		}
@@ -157,28 +156,28 @@ export class RelationFactory {
 	 * @param idx1 - Index of the second color.
 	 * @param cans0 - Candidates instance for the first color.
 	 * @param cans1 - Candidates instance for the second color.
-	 * @param noPreservation - Specifies which index should skip preservation constraints; defaults to -1.
-	 * @returns A new Relation instance based on color separation and preservation constraints.
+ 	 * @param skipPres - Index to skip preservation checks for; -1 skips none.
+ 	 * @returns A new Relation instance based on color separation and preservation constraints.
 	 */
-	#newInstanceRatio(idx0: number, idx1: number, cans0: Candidates, cans1: Candidates, noPreservation: number = -1): (v0: number, v1: number) => number {
-		if (noPreservation !== 0 && noPreservation !== 1) {
+	#newInstanceRatio(idx0: number, idx1: number, cans0: Candidates, cans1: Candidates, skipPres: number = -1): (v0: number, v1: number) => number {
+		if (skipPres !== 0 && skipPres !== 1) {
 			this.#updateRatioToTrichromacy(idx0, idx1, cans0, cans1);
 		}
-		const orig0: Value = cans0.getOriginal();
-		const orig1: Value = cans1.getOriginal();
+		const o0: Value = cans0.getOriginal();
+		const o1: Value = cans1.getOriginal();
 
-		const diff: number = orig0.differenceFrom(orig1);
+		const diff: number = o0.differenceFrom(o1);
 
 		return (val0: number, val1: number): number => {
-			if (Number.isNaN(this.#maxDiff)) this.#maxDiff = this.#validateRatioMaxDiff();  // Called here as it needs to be evaluated after all constraints are created
+			if (Number.isNaN(this.#maxDiff)) {
+				this.#maxDiff = this.#getRatioMaxDiff();  // Called here as it needs to be evaluated after all constraints are created
+			}
 			const cv0: Value = cans0.values()[val0];
 			const cv1: Value = cans1.values()[val1];
 
-			const tarDiff: number = diff * this.#ratioToTri;
-
-			const s : number = sig(this.#sepScaleRatio(cv0, cv1, tarDiff));
-			const p0: number = (noPreservation === 0 || val0 === 0) ? 1 : sig(this.#preScale(idx0, orig0, cv0));
-			const p1: number = (noPreservation === 1 || val1 === 0) ? 1 : sig(this.#preScale(idx1, orig1, cv1));
+			const s : number = sig(this.#sepScaleRatio(cv0, cv1, diff * this.#rToTri));
+			const p0: number = (skipPres === 0 || val0 === 0) ? 1 : sig(this.#preScale(idx0, o0, cv0));
+			const p1: number = (skipPres === 1 || val1 === 0) ? 1 : sig(this.#preScale(idx1, o1, cv1));
 
 			return Math.min(s, p0, p1);
 		};
@@ -198,16 +197,16 @@ export class RelationFactory {
 	 * @param cans1 - Candidates instance for the second color.
 	 */
 	#updateRatioToTrichromacy(idx0: number, idx1: number, cans0: Candidates, cans1: Candidates): void {
-		const orig0: Value = cans0.getOriginal();
-		const orig1: Value = cans1.getOriginal();
+		const o0: Value = cans0.getOriginal();
+		const o1: Value = cans1.getOriginal();
 		let max: number = 0;
 
 		for (const v0 of cans0.values()) {
-			if (this.#preScale(idx0, orig0, v0) < 1) {
+			if (this.#preScale(idx0, o0, v0) < 1) {
 				continue;  // Since 1 is not obtained through the sigmoid function, compare with Scale
 			}
 			for (const v1 of cans1.values()) {
-				if (this.#preScale(idx1, orig1, v1) < 1) {
+				if (this.#preScale(idx1, o1, v1) < 1) {
 					continue;  // Since 1 is not obtained through the sigmoid function, compare with Scale
 				}
 				let sum: number = 0, div: number = 0;
@@ -219,12 +218,12 @@ export class RelationFactory {
 				if (max < a) max = a;
 			}
 		}
-		const od: number = orig0.differenceFrom(orig1);
+		const od: number = o0.differenceFrom(o1);
 		if (max <= 0 || od <= 0) {
 			return;
 		}
 		const r: number = max / od;
-		if (r < this.#ratioToTri) this.#ratioToTri = r;
+		if (r < this.#rToTri) this.#rToTri = r;
 	}
 
 	/**
@@ -234,14 +233,12 @@ export class RelationFactory {
 	 * normalization step, while the actual separation scale uses the minimum
 	 * deficient-vision difference.
 	 */
-	#validateRatioMaxDiff(): number {
-		if (RelationFactory.DEBUG) {
-			console.log('RelationFactory: Ratio to trichromacy: ' + this.#ratioToTri);
-		}
+	#getRatioMaxDiff(): number {
+		if (RelationFactory.DEBUG) console.log('RelationFactory: Ratio to trichromacy: ' + this.#rToTri);
 		let max: number = 0;
 
 		for (const [i0, i1] of this.#scheme.getAdjacencies()) {
-			if (i0 === this.#bottleneckColor || i1 === this.#bottleneckColor) {
+			if (i0 === this.#bnC || i1 === this.#bnC) {
 				continue;
 			}
 			if (this.#scheme.isFixed(i0) && this.#scheme.isFixed(i1)) {
@@ -254,12 +251,10 @@ export class RelationFactory {
 			const a: number = sum / div;
 
 			const dT: number = this.#scheme.getDifference(i0, i1, Vision.TRICHROMACY);
-			const d : number = Math.abs(dT * this.#ratioToTri - a);  // Use absolute value when calculating MaxDeltaDst
+			const d : number = Math.abs(dT * this.#rToTri - a);  // Use absolute value when calculating MaxDeltaDst
 			if (max < d) max = d;
 		}
-		if (RelationFactory.DEBUG) {
-			console.log('RelationFactory: Max Delta Distance: ' + max);
-		}
+		if (RelationFactory.DEBUG) console.log('RelationFactory: Max Delta Distance: ' + max);
 		return max;
 	}
 
@@ -275,10 +270,10 @@ export class RelationFactory {
 	#sepScaleStandard(v0: Value, v1: Value): number {
 		let dP: number = 1024, dD: number = 1024, dM: number = 1024, dT: number = 1024;
 
-		if (this.#doCheckP) dP = this.#s2sLowerBound(v0.differenceFrom(v1, Vision.PROTANOPIA), this.#tarDiffP);
-		if (this.#doCheckD) dD = this.#s2sLowerBound(v0.differenceFrom(v1, Vision.DEUTERANOPIA), this.#tarDiffD);
-		if (this.#doCheckM) dM = this.#s2sLowerBound(v0.differenceFrom(v1, Vision.MONOCHROMACY), this.#tarDiffM);
-		if (this.#doCheckT) dT = this.#s2sLowerBound(v0.differenceFrom(v1), this.#tarDiffT);
+		if (this.#doCheckP) dP = this.#s2sLowerBound(v0.differenceFrom(v1, Vision.PROTANOPIA), this.#dTarP);
+		if (this.#doCheckD) dD = this.#s2sLowerBound(v0.differenceFrom(v1, Vision.DEUTERANOPIA), this.#dTarD);
+		if (this.#doCheckM) dM = this.#s2sLowerBound(v0.differenceFrom(v1, Vision.MONOCHROMACY), this.#dTarM);
+		if (this.#doCheckT) dT = this.#s2sLowerBound(v0.differenceFrom(v1), this.#dTarT);
 
 		return Math.min(dP, dD, dM, dT);
 	}
@@ -345,21 +340,21 @@ export class RelationFactory {
 		if (org.getColor().asInteger() === mod.getColor().asInteger()) {
 			return 1;
 		}
-		if (!this.#doKeepH && !this.#doKeepT) {
+		if (!this.#doKeepHue && !this.#doKeepTon) {
 			return 1;
 		}
 		const [o0, o1, o2]: number[] = org.tone;
 		const [m0, m1, m2]: number[] = mod.tone;
 
 		let sH: number = 1024, sT: number = 1024;
-		if (this.#doKeepH) {
+		if (this.#doKeepHue) {
 			const as: number = Math.abs(m0 - o0);
 			const d : number = Math.min(as, 24 - as);
-			sH = this.#p2s(idx, d, this.#tolH, this.#dHueMax);
+			sH = this.#p2s(idx, d, this.#tolHue, this.#dMaxHue);
 		}
-		if (this.#doKeepT) {
+		if (this.#doKeepTon) {
 			const d: number = Math.sqrt((m1 - o1) * (m1 - o1) + (m2 - o2) * (m2 - o2));
-			sT = this.#p2s(idx, d, this.#tolT, this.#dToneMax);
+			sT = this.#p2s(idx, d, this.#tolTon, this.#dMaxTon);
 		}
 		return Math.min(sH, sT);
 	}
