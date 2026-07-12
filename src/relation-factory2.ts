@@ -5,10 +5,9 @@
  * Conditions are checked for various vision types and perceptual constraints.
  *
  * @author Takuto Yanagida
- * @version 2026-07-10
+ * @version 2026-07-12
  */
 
-import { Adjuster } from './adjuster';
 import { Scheme } from './scheme';
 import { Value } from './value';
 import { Vision } from './vision';
@@ -19,6 +18,8 @@ import { MAX_DELTA_HUE, MAX_DELTA_TONE } from './domain-factory';
 
 export class RelationFactory2 implements RelationFactory {
 
+	static DEBUG: boolean = true;
+
 	#scheme: Scheme;
 
 	#doCheckP: boolean;
@@ -28,13 +29,13 @@ export class RelationFactory2 implements RelationFactory {
 	#ratioToTri: number = 1;  // Target color difference relative to trichromacy
 	#maxDiff   : number = Number.NaN;
 
-	#doKeepHue: boolean;
-	#hueTol   : number;
-	#maxHueD  : number;
+	#doPreserveHue : boolean;
+	#doPreserveTone: boolean;
+	#hueTol        : number;
+	#toneTol       : number;
 
-	#doKeepTone: boolean;
-	#toneTol   : number;
-	#maxToneD  : number;
+	#dHueMax : number;
+	#dToneMax: number;
 
 	#bottleneckColor: number;
 
@@ -55,13 +56,13 @@ export class RelationFactory2 implements RelationFactory {
 			throw new RangeError();
 		}
 
-		this.#doKeepHue = p.doPreserveHue();
-		this.#hueTol    = p.getHueTolerance();
-		this.#maxHueD   = Math.min(this.#hueTol * 2, MAX_DELTA_HUE);
+		this.#doPreserveHue  = p.doPreserveHue();
+		this.#doPreserveTone = p.doPreserveTone();
+		this.#hueTol         = p.getHueTolerance();
+		this.#toneTol        = p.getToneTolerance();
 
-		this.#doKeepTone = p.doPreserveTone();
-		this.#toneTol    = p.getToneTolerance();
-		this.#maxToneD   = Math.min(this.#toneTol * 2, MAX_DELTA_TONE);
+		this.#dHueMax  = Math.min(this.#hueTol * 2, MAX_DELTA_HUE);
+		this.#dToneMax = Math.min(this.#toneTol * 2, MAX_DELTA_TONE);
 
 		this.#bottleneckColor = bottleneckColor;
 	}
@@ -69,16 +70,16 @@ export class RelationFactory2 implements RelationFactory {
 	/**
 	 * Creates a new Relation instance between two colors.
 	 *
-	 * @param _idx0 - Index of the first color.
-	 * @param _idx1 - Index of the second color.
+	 * @param idx0 - Index of the first color.
+	 * @param idx1 - Index of the second color.
 	 * @param cans0 - Candidates instance for the first color.
 	 * @param cans1 - Candidates instance for the second color.
 	 * @param noPreservation - Specifies which index should skip preservation constraints; defaults to -1.
 	 * @returns A new Relation instance based on color separation and preservation constraints.
 	 */
-	newInstance(_idx0: number, _idx1: number, cans0: Candidates, cans1: Candidates, noPreservation: number = -1): (v0: number, v1: number) => number {
+	newInstance(idx0: number, idx1: number, cans0: Candidates, cans1: Candidates, noPreservation: number = -1): (v0: number, v1: number) => number {
 		if (noPreservation !== 0 && noPreservation !== 1) {
-			this.#updateRatioToTrichromacy(cans0, cans1);
+			this.#updateRatioToTrichromacy(idx0, idx1, cans0, cans1);
 		}
 		const orig0: Value = cans0.getOriginal();
 		const orig1: Value = cans1.getOriginal();
@@ -86,17 +87,16 @@ export class RelationFactory2 implements RelationFactory {
 		const tarDiff: number = orig0.differenceFrom(orig1) * this.#ratioToTri;
 
 		return (val0: number, val1: number): number => {
-			this.validateMaxDiff();  // Called here as it needs to be evaluated after all constraints are created
+			if (Number.isNaN(this.#maxDiff)) this.#maxDiff = this.validateMaxDiff();  // Called here as it needs to be evaluated after all constraints are created
 			const cv0: Value = cans0.values()[val0];
 			const cv1: Value = cans1.values()[val1];
 
 			const s : number = sig(this.sepScale(cv0, cv1, tarDiff));
-			const p0: number = (noPreservation === 0) ? 1 : sig(this.preScale(orig0, cv0));
-			const p1: number = (noPreservation === 1) ? 1 : sig(this.preScale(orig1, cv1));
+			const p0: number = (noPreservation === 0 || val0 === 0) ? 1 : sig(this.preScale(idx0, orig0, cv0));
+			const p1: number = (noPreservation === 1 || val1 === 0) ? 1 : sig(this.preScale(idx1, orig1, cv1));
 
-			// const ave: number = ((p0 + p1) / 2 + s) / 2;
-			const min: number = Math.min(s, p0, p1);
-			return min;  // AVE or MIN
+			// return ((p0 + p1) / 2 + s) / 2;
+			return Math.min(s, p0, p1);
 		};
 	}
 
@@ -106,41 +106,36 @@ export class RelationFactory2 implements RelationFactory {
 	 * @param cans0 - Candidates instance for the first color.
 	 * @param cans1 - Candidates instance for the second color.
 	 */
-	#updateRatioToTrichromacy(cans0: Candidates, cans1: Candidates): void {
+	#updateRatioToTrichromacy(idx0: number, idx1: number, cans0: Candidates, cans1: Candidates): void {
 		const orig0: Value = cans0.getOriginal();
 		const orig1: Value = cans1.getOriginal();
 		let maxDiff: number = 0;
 
 		for (const v0 of cans0.values()) {
-			if (this.preScale(orig0, v0) < 1) {
+			if (this.preScale(idx0, orig0, v0) < 1) {
 				continue;  // Since 1 is not obtained through the sigmoid function, compare with Scale
 			}
 			for (const v1 of cans1.values()) {
-				if (this.preScale(orig1, v1) < 1) {
+				if (this.preScale(idx1, orig1, v1) < 1) {
 					continue;  // Since 1 is not obtained through the sigmoid function, compare with Scale
 				}
 				let dP: number = 1024, dD: number = 1024, dM: number = 1024;
-				let sum: number = 0;
-				let div: number = 0;
+				let sum: number = 0, div: number = 0;
 
 				if (this.#doCheckP) {
 					dP = v0.differenceFrom(v1, Vision.PROTANOPIA);
-					sum += dP;
-					div += 1;
+					sum += dP; div += 1;
 				}
 				if (this.#doCheckD) {
 					dD = v0.differenceFrom(v1, Vision.DEUTERANOPIA);
-					sum += dD;
-					div += 1;
+					sum += dD; div += 1;
 				}
 				if (this.#doCheckM) {
 					dM = v0.differenceFrom(v1, Vision.MONOCHROMACY);
-					sum += dM;
-					div += 1;
+					sum += dM; div += 1;
 				}
 				// const min: number = Math.min(dP, dD, dM);
 				const ave: number = sum / div;
-
 				const d: number = ave;  // Using average (ave) gives slightly better results
 				if (maxDiff < d) maxDiff = d;
 			}
@@ -153,11 +148,8 @@ export class RelationFactory2 implements RelationFactory {
 	 * Calculates the maximum difference between the target color difference
 	 * and the current color difference for each adjacent color in the specified color vision type.
 	 */
-	validateMaxDiff(): void {
-		if (!Number.isNaN(this.#maxDiff)) {
-			return;
-		}
-		if (Adjuster.DEBUG) {
+	validateMaxDiff(): number {
+		if (RelationFactory2.DEBUG) {
 			console.log('RelationFactory: Ratio to trichromacy: ' + this.#ratioToTri);
 		}
 		let max: number = 0;
@@ -170,35 +162,30 @@ export class RelationFactory2 implements RelationFactory {
 			}
 			const dT: number = this.#scheme.getDifference(i0, i1, Vision.TRICHROMACY);
 			let dP: number = 1024, dD: number = 1024, dM: number = 1024;
-			let sum: number = 0;
-			let div: number = 0;
+			let sum: number = 0, div: number = 0;
 
 			if (this.#doCheckP) {
 				dP = this.#scheme.getDifference(i0, i1, Vision.PROTANOPIA);
-				sum += dP;
-				div += 1;
+				sum += dP; div += 1;
 			}
 			if (this.#doCheckD) {
 				dD = this.#scheme.getDifference(i0, i1, Vision.DEUTERANOPIA);
-				sum += dD;
-				div += 1;
+				sum += dD; div += 1;
 			}
 			if (this.#doCheckM) {
 				dM = this.#scheme.getDifference(i0, i1, Vision.MONOCHROMACY);
-				sum += dM;
-				div += 1;
+				sum += dM; div += 1;
 			}
-			// const min: number = Math.min(dP, dD, dM);
+			// const d: number = Math.min(dP, dD, dM);
 			const ave: number = sum / div;
-
 			const d: number = ave;  // Using average (ave) gives slightly better results
 			const D: number = Math.abs(dT * this.#ratioToTri - d);  // Use absolute value when calculating MaxDeltaDst
 			if (max < D) max = D;
 		}
-		if (Adjuster.DEBUG) {
+		if (RelationFactory2.DEBUG) {
 			console.log('RelationFactory: Max Delta Distance: ' + max);
 		}
-		this.#maxDiff = max;
+		return max;
 	}
 
 
@@ -206,7 +193,7 @@ export class RelationFactory2 implements RelationFactory {
 
 
 	/**
-	 * Calculates satisfaction for separation constraints based on target color difference.
+	 * Computes the constraint satisfaction for separation constraints.
 	 *
 	 * @param v0 - Value instance of the first color.
 	 * @param v1 - Value instance of the second color.
@@ -215,69 +202,81 @@ export class RelationFactory2 implements RelationFactory {
 	 */
 	sepScale(v0: Value, v1: Value, tarDiff: number): number {
 		let dP: number = 1024, dD: number = 1024, dM: number = 1024;
-		let sum: number = 0;
-		let div: number = 0;
+		let sum: number = 0, div: number = 0;
 
 		if (this.#doCheckP) {
 			dP = v0.differenceFrom(v1, Vision.PROTANOPIA);
-			sum += dP;
-			div += 1;
+			sum += dP; div += 1;
 		}
 		if (this.#doCheckD) {
 			dD = v0.differenceFrom(v1, Vision.DEUTERANOPIA);
-			sum += dD;
-			div += 1;
+			sum += dD; div += 1;
 		}
 		if (this.#doCheckM) {
 			dM = v0.differenceFrom(v1, Vision.MONOCHROMACY);
-			sum += dM;
-			div += 1;
+			sum += dM; div += 1;
 		}
-		const min: number = Math.min(dP, dD, dM);
-		// const ave: number = sum / div;
-
-		const d: number = min;  // AVE or MIN
-		return 1 - Math.abs(tarDiff - d) / this.#maxDiff;  // Based on distance to target color difference
+		const d: number = Math.min(dP, dD, dM);  // sum / div;
+		return this.#s2s(d, tarDiff);
 	}
 
 	/**
-	 * Calculates satisfaction for preservation constraints based on hue and tone tolerance.
+	 * Converts the distance to a satisfaction scale based on target difference.
 	 *
+	 * @param d - Calculated difference.
+	 * @param tarD - Target difference for satisfaction.
+	 * @returns The satisfaction scale based on the difference to the target.
+	 */
+	#s2s(d: number, tarD: number): number {
+		return 1 - Math.abs(tarD - d) / this.#maxDiff;  // Proportional to the distance from the target difference
+	}
+
+	/**
+	 * Computes the constraint satisfaction for preservation constraints.
+	 *
+	 * @param idx - Index of the color.
 	 * @param org - Original Value instance.
 	 * @param mod - Modified Value instance.
 	 * @returns Satisfaction scale for preservation constraints.
 	 */
-	preScale(org: Value, mod: Value): number {
+	preScale(idx: number, org: Value, mod: Value): number {
 		if (org.getColor().asInteger() === mod.getColor().asInteger()) {
 			return 1;
 		}
-		if (!this.#doKeepHue && !this.#doKeepTone) {
+		if (!this.#doPreserveHue && !this.#doPreserveTone) {
 			return 1;
 		}
 		const [o0, o1, o2]: number[] = org.tone;
 		const [m0, m1, m2]: number[] = mod.tone;
 
 		let sH: number = 1024, sT: number = 1024;
-		let sum: number = 0;
-		let div: number = 0;
+		let sum: number = 0, div: number = 0;
 
-		if (this.#doKeepHue) {
-			const d: number = Math.abs(m0 - o0);
-			const D: number = Math.min(d, 24 - d);
-			sH = 1 - (D - this.#hueTol) / (this.#maxHueD - this.#hueTol);
-			sum += sH;
-			div += 1;
+		if (this.#doPreserveHue) {
+			const as: number = Math.abs(m0 - o0);
+			const d : number = Math.min(as, 24 - as);
+			sH = this.#p2s(idx, d, this.#hueTol, this.#dHueMax);
+			sum += sH; div += 1;
 		}
-		if (this.#doKeepTone) {
+		if (this.#doPreserveTone) {
 			const d: number = Math.sqrt((m1 - o1) * (m1 - o1) + (m2 - o2) * (m2 - o2));
-			sT = 1 - (d - this.#toneTol) / (this.#maxToneD - this.#toneTol);
-			sum += sT;
-			div += 1;
+			sT = this.#p2s(idx, d, this.#toneTol, this.#dToneMax);
+			sum += sT; div += 1;
 		}
-		const min: number = Math.min(sH, sT);
-		// const ave: number = sum / div;
+		return Math.min(sH, sT);  // sum / div;
+	}
 
-		return min;  // AVE or MIN
+	/**
+	 * Converts the preservation difference to a satisfaction scale.
+	 *
+	 * @param idx - Index of the color.
+	 * @param d - Calculated difference.
+	 * @param tol - Tolerance value for satisfaction.
+	 * @param maxD - Maximum difference.
+	 * @returns The satisfaction scale based on preservation tolerance.
+	 */
+	#p2s(_idx: number, d: number, tol: number, maxD: number): number {
+		return 1 - (d - tol) / (maxD - tol);
 	}
 
 }
@@ -289,5 +288,5 @@ export class RelationFactory2 implements RelationFactory {
  * @returns The sigmoid-adjusted satisfaction.
  */
 function sig(s: number): number {
-	return 1 / (1 + Math.exp(-9.19 * (s - 0.5)));  // 12 -> 9.19
+	return 1 / (1 + Math.exp(-9.19 * (s - 0.5)));
 }

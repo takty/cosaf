@@ -5,7 +5,7 @@
  * Conditions are checked for various vision types and perceptual constraints.
  *
  * @author Takuto Yanagida
- * @version 2026-07-10
+ * @version 2026-07-12
  */
 
 import { Scheme } from './scheme';
@@ -17,24 +17,25 @@ import { RelationFactory } from './relation-factory';
 
 export class RelationFactory1 implements RelationFactory {
 
-	#doCheckT: boolean;
 	#doCheckP: boolean;
 	#doCheckD: boolean;
 	#doCheckM: boolean;
+	#doCheckT: boolean;
 
-	#tarDiffT: number;
 	#tarDiffP: number;
 	#tarDiffD: number;
-	#tarDiffL: number;
-	#maxDiff : number;
+	#tarDiffM: number;
+	#tarDiffT: number;
 
-	#doKeepHue: boolean;
-	#hueTol   : number;
-	#maxHueTol: number;
+	#maxDiff: number;
 
-	#doKeepTone: boolean;
-	#toneTol   : number;
-	#maxToneTol: number;
+	#doPreserveHue : boolean;
+	#doPreserveTone: boolean;
+	#hueTol        : number;
+	#toneTol       : number;
+
+	#dHueMax : number;
+	#dToneMax: number;
 
 	#doCheckConspicuity: boolean;
 	#conspicuityRate   : number;
@@ -44,36 +45,36 @@ export class RelationFactory1 implements RelationFactory {
 	 * Initializes the RelationFactory1 with a color scheme and parameter settings.
 	 *
 	 * @param s - Scheme instance providing color data.
-	 * @param param - Parameters instance for configuration values.
+	 * @param p - Parameters instance for configuration values.
 	 */
-	constructor(s: Scheme, param: Parameters) {
-		this.#doCheckT = param.doCheckVision(Vision.TRICHROMACY);
-		this.#doCheckP = param.doCheckVision(Vision.PROTANOPIA);
-		this.#doCheckD = param.doCheckVision(Vision.DEUTERANOPIA);
-		this.#doCheckM = param.doCheckVision(Vision.MONOCHROMACY);
+	constructor(s: Scheme, p: Parameters) {
+		this.#doCheckP = p.doCheckVision(Vision.PROTANOPIA);
+		this.#doCheckD = p.doCheckVision(Vision.DEUTERANOPIA);
+		this.#doCheckM = p.doCheckVision(Vision.MONOCHROMACY);
+		this.#doCheckT = p.doCheckVision(Vision.TRICHROMACY);
 
-		this.#tarDiffT = param.getTargetDifference(Vision.TRICHROMACY);
-		this.#tarDiffP = param.getTargetDifference(Vision.PROTANOPIA);
-		this.#tarDiffD = param.getTargetDifference(Vision.DEUTERANOPIA);
-		this.#tarDiffL = param.getTargetDifference(Vision.MONOCHROMACY);
+		this.#tarDiffP = p.getTargetDifference(Vision.PROTANOPIA);
+		this.#tarDiffD = p.getTargetDifference(Vision.DEUTERANOPIA);
+		this.#tarDiffM = p.getTargetDifference(Vision.MONOCHROMACY);
+		this.#tarDiffT = p.getTargetDifference(Vision.TRICHROMACY);
 
 		const ds: number[] = [0];
-		if (this.#doCheckT) ds.push(this.#tarDiffT - s.getLowestDifference(Vision.TRICHROMACY));
 		if (this.#doCheckP) ds.push(this.#tarDiffP - s.getLowestDifference(Vision.PROTANOPIA));
 		if (this.#doCheckD) ds.push(this.#tarDiffD - s.getLowestDifference(Vision.DEUTERANOPIA));
-		if (this.#doCheckM) ds.push(this.#tarDiffL - s.getLowestDifference(Vision.MONOCHROMACY));
+		if (this.#doCheckM) ds.push(this.#tarDiffM - s.getLowestDifference(Vision.MONOCHROMACY));
+		if (this.#doCheckT) ds.push(this.#tarDiffT - s.getLowestDifference(Vision.TRICHROMACY));
 		this.#maxDiff = Math.max(...ds);
 
-		this.#doKeepHue = param.doPreserveHue();
-		this.#hueTol    = param.getHueTolerance();
-		this.#maxHueTol = param.getMaximumHueDifference();
+		this.#doPreserveHue  = p.doPreserveHue();
+		this.#doPreserveTone = p.doPreserveTone();
+		this.#hueTol         = p.getHueTolerance();
+		this.#toneTol        = p.getToneTolerance();
 
-		this.#doKeepTone = param.doPreserveTone();
-		this.#toneTol    = param.getToneTolerance();
-		this.#maxToneTol = param.getMaximumToneDifference();
+		this.#dHueMax  = p.getMaximumHueDifference();
+		this.#dToneMax = p.getMaximumToneDifference();
 
-		this.#doCheckConspicuity = param.doCheckConspicuity();
-		this.#conspicuityRate    = param.getConspicuityRate();
+		this.#doCheckConspicuity = p.doCheckConspicuity();
+		this.#conspicuityRate    = p.getConspicuityRate();
 		this.#conspicuityArray   = this.#doCheckConspicuity ? s.getConspicuityArray() : [];
 	}
 
@@ -109,17 +110,27 @@ export class RelationFactory1 implements RelationFactory {
 	/**
 	 * Computes the constraint satisfaction for separation constraints.
 	 *
-	 * @param cv0 - Value instance of the first color.
-	 * @param cv1 - Value instance of the second color.
+	 * @param v0 - Value instance of the first color.
+	 * @param v1 - Value instance of the second color.
 	 * @returns Satisfaction scale for separation constraints.
 	 */
-	sepScale(cv0: Value, cv1: Value): number {
-		let dT: number = 1024, dP: number = 1024, dD: number = 1024, dM: number = 1024;
-		if (this.#doCheckT) dT = this.#s2s(cv0.differenceFrom(cv1), this.#tarDiffT);
-		if (this.#doCheckP) dP = this.#s2s(cv0.differenceFrom(cv1, Vision.PROTANOPIA), this.#tarDiffP);
-		if (this.#doCheckD) dD = this.#s2s(cv0.differenceFrom(cv1, Vision.DEUTERANOPIA), this.#tarDiffD);
-		if (this.#doCheckM) dM = this.#s2s(cv0.differenceFrom(cv1, Vision.MONOCHROMACY), this.#tarDiffL);
-		return Math.min(dT, dP, dD, dM);
+	sepScale(v0: Value, v1: Value): number {
+		let dP: number = 1024, dD: number = 1024, dM: number = 1024;
+		let dT: number = 1024;
+
+		if (this.#doCheckP) {
+			dP = this.#s2s(v0.differenceFrom(v1, Vision.PROTANOPIA), this.#tarDiffP);
+		}
+		if (this.#doCheckD) {
+			dD = this.#s2s(v0.differenceFrom(v1, Vision.DEUTERANOPIA), this.#tarDiffD);
+		}
+		if (this.#doCheckM) {
+			dM = this.#s2s(v0.differenceFrom(v1, Vision.MONOCHROMACY), this.#tarDiffM);
+		}
+		if (this.#doCheckT) {
+			dT = this.#s2s(v0.differenceFrom(v1), this.#tarDiffT);
+		}
+		return Math.min(dP, dD, dM, dT);
 	}
 
 	/**
@@ -142,21 +153,24 @@ export class RelationFactory1 implements RelationFactory {
 	 * @returns Satisfaction scale for preservation constraints.
 	 */
 	preScale(idx: number, org: Value, mod: Value): number {
-		if (!this.#doKeepHue && !this.#doKeepTone) {
+		if (org.getColor().asInteger() === mod.getColor().asInteger()) {
+			return 1;
+		}
+		if (!this.#doPreserveHue && !this.#doPreserveTone) {
 			return 1;
 		}
 		const [o0, o1, o2]: number[] = org.tone;
 		const [m0, m1, m2]: number[] = mod.tone;
 
 		let sH: number = 1024, sT: number = 1024;
-		if (this.#doKeepHue) {
-			const as = Math.abs(m0 - o0);
-			const d  = Math.min(as, 24 - as);
-			sH = this.#p2s(idx, d, this.#hueTol, this.#maxHueTol);
+		if (this.#doPreserveHue) {
+			const as: number = Math.abs(m0 - o0);
+			const d : number = Math.min(as, 24 - as);
+			sH = this.#p2s(idx, d, this.#hueTol, this.#dHueMax);
 		}
-		if (this.#doKeepTone) {
+		if (this.#doPreserveTone) {
 			const d: number = Math.sqrt((m1 - o1) * (m1 - o1) + (m2 - o2) * (m2 - o2));
-			sT = this.#p2s(idx, d, this.#toneTol, this.#maxToneTol);
+			sT = this.#p2s(idx, d, this.#toneTol, this.#dToneMax);
 		}
 		return Math.min(sH, sT);
 	}
@@ -167,20 +181,20 @@ export class RelationFactory1 implements RelationFactory {
 	 * @param idx - Index of the color.
 	 * @param d - Calculated difference.
 	 * @param tol - Tolerance value for satisfaction.
-	 * @param maxTol - Maximum allowed tolerance.
+	 * @param maxD - Maximum difference.
 	 * @returns The satisfaction scale based on preservation tolerance.
 	 */
-	#p2s(idx: number, d: number, tol: number, maxTol: number): number {
+	#p2s(idx: number, d: number, tol: number, maxD: number): number {
 		if (this.#doCheckConspicuity) {
 			tol = tol * (1 - this.#conspicuityRate * this.#conspicuityArray[idx]);
 		}
-		return (maxTol - d) / (maxTol - tol);
+		return (maxD - d) / (maxD - tol);
 	}
 
 }
 
 /**
- * Sigmoid function for adjusting satisfaction levels.
+ * Applies a sigmoid function for satisfaction adjustment.
  *
  * @param s - Satisfaction scale.
  * @returns The sigmoid-adjusted satisfaction.
