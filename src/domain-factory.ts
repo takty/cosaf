@@ -18,8 +18,6 @@ import { Candidates } from './candidates';
 
 type Triplet = [number, number, number];
 
-export type DomainFactoryMode = 'standard' | 'ratio';
-
 export const MAX_DELTA_HUE : number = 12;  // Based on PCCS standard
 export const MAX_DELTA_TONE: number = Math.sqrt(10 * 10 + 10 * 10);  // Based on PCCS standard
 
@@ -32,31 +30,28 @@ export class DomainFactory {
 
 	#doPreserveHue : boolean;
 	#doPreserveTone: boolean;
-	#mode          : DomainFactoryMode;
+	#isRatioMode   : boolean;
 
 	#dHueMax      : number;
 	#dToneMax     : number;
 	#commonMaxDiff: number = Number.NaN;
 
-	constructor(s: Scheme, param: Parameters, mode: DomainFactoryMode) {
+	constructor(s: Scheme, p: Parameters) {
 		this.#scheme = s;
-		this.#res    = param.getResolution();
+		this.#res    = p.getResolution();
 
-		this.#doPreserveHue  = param.doPreserveHue();
-		this.#doPreserveTone = param.doPreserveTone();
+		this.#doPreserveHue  = p.doPreserveHue();
+		this.#doPreserveTone = p.doPreserveTone();
 
-		this.#mode = mode;
+		this.#isRatioMode = p.isRatioModeEnabled();
 
-		switch (mode) {
-		case 'standard':
-			this.#dHueMax       = param.getMaximumHueDifference();
-			this.#dToneMax      = param.getMaximumToneDifference();
-			this.#commonMaxDiff = param.getMaximumDifference();
-			break;
-		case 'ratio':
-			this.#dHueMax  = Math.min(param.getHueTolerance() * 2, MAX_DELTA_HUE);
-			this.#dToneMax = Math.min(param.getToneTolerance() * 2, MAX_DELTA_TONE);
-			break;
+		if (this.#isRatioMode) {
+			this.#dHueMax  = Math.min(p.getHueTolerance() * 2, MAX_DELTA_HUE);
+			this.#dToneMax = Math.min(p.getToneTolerance() * 2, MAX_DELTA_TONE);
+		} else {
+			this.#dHueMax       = p.getMaximumHueDifference();
+			this.#dToneMax      = p.getMaximumToneDifference();
+			this.#commonMaxDiff = p.getMaximumDifference();
 		}
 	}
 
@@ -236,10 +231,7 @@ export class DomainFactory {
 	 * @returns The maximum difference to an adjacent color.
 	 */
 	#getMaxDiff(adjTab: number[][], idx: number): number {
-		switch (this.#mode) {
-		case 'standard':
-			return this.#commonMaxDiff;
-		case 'ratio':
+		if (this.#isRatioMode) {
 			const rel: number[] = adjTab[idx];
 			let max  : number   = 0;
 
@@ -249,6 +241,8 @@ export class DomainFactory {
 			}
 			if (DomainFactory.DEBUG) console.log('DomainFactory: Max Distance: ' + max);
 			return max;
+		} else {
+			return this.#commonMaxDiff;
 		}
 	}
 

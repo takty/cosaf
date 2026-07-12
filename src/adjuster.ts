@@ -128,12 +128,12 @@ export class Adjuster {
 	#createProblem(): Problem {
 		let rf: RelationFactory;
 		if (this.#param.isRatioModeEnabled()) {
-			rf         = new RelationFactory2(this.#org, this.#param);
-			this.#cans = new DomainFactory(this.#org, this.#param, 'ratio').build();
+			rf = new RelationFactory2(this.#org, this.#param);
 		} else {
-			rf         = new RelationFactory1(this.#org, this.#param);
-			this.#cans = new DomainFactory(this.#org, this.#param, 'standard').build();
+			rf = new RelationFactory1(this.#org, this.#param);
 		}
+		this.#cans = new DomainFactory(this.#org, this.#param).build();
+
 		const p: Problem = new Problem();
 		for (const can of this.#cans) {
 			p.createVariable(p.createDomain(0, can.values().length - 1), 0, 'v');
@@ -160,12 +160,12 @@ export class Adjuster {
 	#createProblemWithBottleneck(bottleneck: number): Problem {
 		let rf: RelationFactory;
 		if (this.#param.isRatioModeEnabled()) {
-			rf         = new RelationFactory2(this.#org, this.#param, bottleneck);
-			this.#cans = new DomainFactory(this.#org, this.#param, 'ratio').buildWithBottleneck(bottleneck);
+			rf = new RelationFactory2(this.#org, this.#param, bottleneck);
 		} else {
-			rf         = new RelationFactory1(this.#org, this.#param);
-			this.#cans = new DomainFactory(this.#org, this.#param, 'standard').buildWithBottleneck(bottleneck);
+			rf = new RelationFactory1(this.#org, this.#param);
 		}
+		this.#cans = new DomainFactory(this.#org, this.#param).buildWithBottleneck(bottleneck);
+
 		const p: Problem = new Problem();
 		for (const can of this.#cans) {
 			p.createVariable(p.createDomain(0, can.values().length - 1), 0, 'v');
